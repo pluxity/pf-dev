@@ -37,6 +37,7 @@ const createEngineInstance = (): HLSEngineInstance => ({
   reconnectTimer: null,
   reconnectAttempts: 0,
   lastBytesLoaded: 0,
+  eventHandlers: {},
 });
 
 export const useHLSStore = create<HLSStore>()(
@@ -124,6 +125,26 @@ function cleanupEngine(engine: HLSEngineInstance) {
   }
 
   if (engine.videoElement) {
+    // Remove event listeners
+    if (engine.eventHandlers.playing) {
+      engine.videoElement.removeEventListener("playing", engine.eventHandlers.playing);
+    }
+    if (engine.eventHandlers.waiting) {
+      engine.videoElement.removeEventListener("waiting", engine.eventHandlers.waiting);
+    }
+    if (engine.eventHandlers.canplay) {
+      engine.videoElement.removeEventListener("canplay", engine.eventHandlers.canplay);
+    }
+    if (engine.eventHandlers.loadedmetadata) {
+      engine.videoElement.removeEventListener(
+        "loadedmetadata",
+        engine.eventHandlers.loadedmetadata
+      );
+    }
+    if (engine.eventHandlers.error) {
+      engine.videoElement.removeEventListener("error", engine.eventHandlers.error);
+    }
+
     engine.videoElement.src = "";
     engine.videoElement.load();
   }
@@ -186,21 +207,21 @@ function loadHlsJs(
     highBufferWatchdogPeriod: 1,
   });
 
-  const engines = new Map(get().engines);
-  const engine = engines.get(streamUrl);
-  if (engine) {
-    engine.hls = hls;
-    set({ engines });
+  const enginesMap = new Map(get().engines);
+  const engineInstance = enginesMap.get(streamUrl);
+  if (engineInstance) {
+    engineInstance.hls = hls;
+    set({ engines: enginesMap });
   }
 
   hls.on(Hls.Events.MANIFEST_PARSED, () => {
     updateStreamStatus(streamUrl, "playing", null, get, set);
 
-    const engines = new Map(get().engines);
-    const engine = engines.get(streamUrl);
-    if (engine) {
-      engine.reconnectAttempts = 0;
-      set({ engines });
+    const enginesMap2 = new Map(get().engines);
+    const engineInstance2 = enginesMap2.get(streamUrl);
+    if (engineInstance2) {
+      engineInstance2.reconnectAttempts = 0;
+      set({ engines: enginesMap2 });
     }
 
     startStatsCollection(streamUrl, videoElement, get, set);
@@ -233,6 +254,18 @@ function loadHlsJs(
       updateStreamStatus(streamUrl, "playing", null, get, set);
     }
   };
+
+  // Store event handlers for cleanup
+  const enginesMap3 = new Map(get().engines);
+  const engineInstance3 = enginesMap3.get(streamUrl);
+  if (engineInstance3) {
+    engineInstance3.eventHandlers = {
+      playing: handlePlaying,
+      waiting: handleWaiting,
+      canplay: handleCanPlay,
+    };
+    set({ engines: enginesMap3 });
+  }
 
   videoElement.addEventListener("playing", handlePlaying);
   videoElement.addEventListener("waiting", handleWaiting);
@@ -277,6 +310,20 @@ function loadNativeHLS(
   const handleError = () => {
     handleNativeError(streamUrl, config, get, set);
   };
+
+  // Store event handlers for cleanup
+  const enginesMap4 = new Map(get().engines);
+  const engineInstance4 = enginesMap4.get(streamUrl);
+  if (engineInstance4) {
+    engineInstance4.eventHandlers = {
+      loadedmetadata: handleLoadedMetadata,
+      playing: handlePlaying,
+      waiting: handleWaiting,
+      canplay: handleCanPlay,
+      error: handleError,
+    };
+    set({ engines: enginesMap4 });
+  }
 
   videoElement.addEventListener("loadedmetadata", handleLoadedMetadata);
   videoElement.addEventListener("playing", handlePlaying);

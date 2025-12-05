@@ -39,33 +39,13 @@ export function CCTVPlayer({
   const whepConnect = useWHEPStore((state) => state.connectStream);
   const whepDisconnect = useWHEPStore((state) => state.disconnectStream);
 
-  const getStatus = (): StreamStatus | HLSStreamStatus => {
-    if (protocol === "hls") {
-      return hlsStreamState?.status ?? "idle";
-    }
-    return whepStreamState?.status ?? "idle";
-  };
-
-  const getError = (): string | null => {
-    if (protocol === "hls") {
-      return hlsStreamState?.error ?? null;
-    }
-    return whepStreamState?.error ?? null;
-  };
-
-  const getStream = (): MediaStream | null => {
-    if (protocol === "whep") {
-      return whepStreamState?.remoteStream ?? null;
-    }
-    return null;
-  };
-
-  const getStats = (): HLSStats | null => {
-    if (protocol === "hls") {
-      return hlsStreamState?.stats ?? null;
-    }
-    return null;
-  };
+  const status: StreamStatus | HLSStreamStatus =
+    protocol === "hls" ? (hlsStreamState?.status ?? "idle") : (whepStreamState?.status ?? "idle");
+  const error: string | null =
+    protocol === "hls" ? (hlsStreamState?.error ?? null) : (whepStreamState?.error ?? null);
+  const stream: MediaStream | null =
+    protocol === "whep" ? (whepStreamState?.remoteStream ?? null) : null;
+  const stats: HLSStats | null = protocol === "hls" ? (hlsStreamState?.stats ?? null) : null;
 
   const connect = useCallback(() => {
     if (protocol === "hls") {
@@ -101,9 +81,14 @@ export function CCTVPlayer({
     if (protocol === "whep" && autoConnect && streamUrl && whepInitialized) {
       whepConnect(streamUrl);
     }
-  }, [protocol, streamUrl, autoConnect, whepInitialized, whepConnect]);
 
-  const stream = getStream();
+    return () => {
+      if (protocol === "whep" && streamUrl) {
+        whepDisconnect(streamUrl);
+      }
+    };
+  }, [protocol, streamUrl, autoConnect, whepInitialized, whepConnect, whepDisconnect]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !stream) return;
@@ -122,11 +107,11 @@ export function CCTVPlayer({
   // eslint-disable-next-line react-hooks/refs -- render props pattern requires passing ref to children
   return children({
     videoRef,
-    status: getStatus(),
-    error: getError(),
+    status,
+    error,
     connect,
     disconnect,
-    stream: getStream(),
-    stats: getStats(),
+    stream,
+    stats,
   });
 }

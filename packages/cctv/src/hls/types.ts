@@ -23,6 +23,13 @@ export interface HLSEngineInstance {
   reconnectTimer: ReturnType<typeof setTimeout> | null;
   reconnectAttempts: number;
   lastBytesLoaded: number;
+  eventHandlers: {
+    playing?: () => void;
+    waiting?: () => void;
+    canplay?: () => void;
+    loadedmetadata?: () => void;
+    error?: () => void;
+  };
 }
 
 export interface HLSState {
