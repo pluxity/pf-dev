@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- 249543f: prettier 및 eslint 적용으로 코드 스타일 통일
+  - CRLF를 LF로 변환하여 줄 끝 문자 통일
+  - prettier 포맷팅 적용
+  - package.json에 lint:fix, format, format:check 스크립트 추가
+
 `@pf-dev/ui` 패키지의 모든 주요 변경사항을 기록합니다.
 
 ## [1.0.0] - 2025-12-04
