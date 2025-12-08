@@ -14,6 +14,7 @@
   "dependencies": {
     "@pf-dev/map": "workspace:*",
     "cesium": "^1.121.0",
+    "geotiff": "2.1.4-beta.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

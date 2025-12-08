@@ -29,6 +29,12 @@
    - 평면 지구 (Ellipsoid)
    - **Ion 토큰 불필요 - 완전 무료**
 
+5. **Korea DEM (GeoTIFF)** 📊
+   - GeoTIFF DEM 데이터 시각화
+   - `public/korea.tif` 파일 필요 (389MB, Git에서 제외)
+   - DEM 메타데이터 표시 (크기, 범위, 고도)
+   - **현재는 정보 표시만, Terrain 렌더링 미구현**
+
 ### 주요 기능
 
 - 📍 **서울 주요 지점 마커**

@@ -3,9 +3,10 @@ import IonImageryIonTerrain from "./scenarios/IonImageryIonTerrain";
 import IonImageryEllipsoidTerrain from "./scenarios/IonImageryEllipsoidTerrain";
 import OSMImageryEllipsoidTerrain from "./scenarios/OSMImageryEllipsoidTerrain";
 import ArcGISImageryEllipsoidTerrain from "./scenarios/ArcGISImageryEllipsoidTerrain";
+import KoreaDEMTerrain from "./scenarios/KoreaDEMTerrain";
 import "./App.css";
 
-type Scenario = "ion-ion" | "ion-ellipsoid" | "osm-ellipsoid" | "arcgis-ellipsoid";
+type Scenario = "ion-ion" | "ion-ellipsoid" | "osm-ellipsoid" | "arcgis-ellipsoid" | "korea-dem";
 
 const scenarios = [
   { id: "ion-ion" as const, name: "Ion Imagery + Ion Terrain", requiresToken: true },
@@ -15,6 +16,12 @@ const scenarios = [
     id: "arcgis-ellipsoid" as const,
     name: "ArcGIS Imagery + Ellipsoid Terrain",
     requiresToken: false,
+  },
+  {
+    id: "korea-dem" as const,
+    name: "Korea DEM (GeoTIFF)",
+    requiresToken: false,
+    badge: "DEM",
   },
 ];
 
@@ -36,7 +43,10 @@ export default function App() {
             >
               {scenario.name}
               {scenario.requiresToken && <span className="badge">Ion</span>}
-              {!scenario.requiresToken && <span className="badge free">Free</span>}
+              {"badge" in scenario && <span className="badge dem">{scenario.badge}</span>}
+              {!scenario.requiresToken && !("badge" in scenario) && (
+                <span className="badge free">Free</span>
+              )}
             </button>
           ))}
         </div>
@@ -59,6 +69,7 @@ export default function App() {
         {activeScenario === "ion-ellipsoid" && <IonImageryEllipsoidTerrain />}
         {activeScenario === "osm-ellipsoid" && <OSMImageryEllipsoidTerrain />}
         {activeScenario === "arcgis-ellipsoid" && <ArcGISImageryEllipsoidTerrain />}
+        {activeScenario === "korea-dem" && <KoreaDEMTerrain />}
       </div>
     </div>
   );
