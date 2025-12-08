@@ -43,9 +43,21 @@ await setupImagery(viewer, {
   provider: "osm",
 });
 
-// 터레인 설정
+// 터레인 설정 (기본 평면 지구)
 await setupTerrain(viewer, {
-  enabled: true,
+  provider: "ellipsoid",
+});
+
+// Ion Terrain 사용
+await setupTerrain(viewer, {
+  provider: "ion",
+  assetId: 1,
+});
+
+// 커스텀 Terrain 서버
+await setupTerrain(viewer, {
+  provider: "custom",
+  url: "https://your-terrain-server.com/tiles",
 });
 ```
 
@@ -196,6 +208,12 @@ Cesium Viewer를 생성합니다.
 
 - `viewer`: Viewer - Cesium Viewer 인스턴스
 - `config`: TerrainConfig - 터레인 설정
+
+**Supported Providers:**
+
+- `ellipsoid` - 평면 지구 (기본값, Ion 불필요)
+- `ion` - Cesium Ion Terrain (assetId 필요)
+- `custom` - 커스텀 Terrain 서버 (url 필요)
 
 ### Marker
 

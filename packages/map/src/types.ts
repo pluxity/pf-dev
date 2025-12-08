@@ -32,10 +32,14 @@ export interface ImageryConfig {
   key?: string; // Bing 등 API 키가 필요한 경우
 }
 
+// Terrain Provider 타입
+export type TerrainProviderType = "ion" | "custom" | "ellipsoid";
+
 // Terrain 설정
 export interface TerrainConfig {
-  enabled: boolean;
-  assetId?: number; // Ion Terrain Asset ID
+  provider?: TerrainProviderType; // 기본값: "ellipsoid"
+  assetId?: number; // Ion Terrain Asset ID (provider: "ion"일 때)
+  url?: string; // 커스텀 Terrain URL (provider: "custom"일 때)
 }
 
 // Marker 타입
