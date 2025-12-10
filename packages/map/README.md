@@ -1,6 +1,6 @@
 # @pf-dev/map
 
-CesiumJS 기반 3D 지도 시각화 패키지입니다.
+CesiumJS 기반 3D 지도 시각화 React 패키지입니다.
 
 ## 설치
 
@@ -10,317 +10,226 @@ pnpm add @pf-dev/map cesium
 
 ## 주요 기능
 
-- **Viewer 관리** - Cesium Viewer 생성 및 설정
-- **Imagery 설정** - Ion, OSM, Bing, ArcGIS 이미지리 지원
-- **Terrain 설정** - Ion 터레인 및 대안
-- **Marker 시스템** - 단일/다중 마커 생성 및 관리
-- **Cluster 기능** - 마커 클러스터링
-- **Camera 제어** - flyTo, setView 등 카메라 조작
-- **Zustand Store** - 중앙화된 상태 관리
+- **MapViewer** - Cesium Viewer React 컴포넌트
+- **Imagery** - Ion, OSM, Bing, ArcGIS, VWorld, Kakao 이미지리 지원
+- **Terrain** - Ellipsoid, Ion, Custom 터레인 지원
+- **Tiles3D** - 3D Tiles 로딩 컴포넌트
+- **Feature Store** - 그룹 기반 Entity 관리 및 검색
+- **Map Store** - 카메라 제어 (flyTo, lookAt, setView)
 
 ## 기본 사용법
 
-### 1. Viewer 생성
+### 1. MapViewer 설정
 
-```typescript
-import { createViewer, setupImagery, setupTerrain } from "@pf-dev/map";
+```tsx
+import { MapViewer, Imagery, Terrain, Tiles3D } from "@pf-dev/map";
 
-// Viewer 생성
-const viewer = createViewer("cesiumContainer", {
-  ionToken: import.meta.env.VITE_ION_TOKEN,
-  timeline: false,
-  animation: false,
-});
-
-// 이미지리 설정 (Ion)
-await setupImagery(viewer, {
-  provider: "ion",
-  assetId: 2,
-});
-
-// 오프라인 이미지리 설정 (OSM)
-await setupImagery(viewer, {
-  provider: "osm",
-});
-
-// 터레인 설정 (기본 평면 지구)
-await setupTerrain(viewer, {
-  provider: "ellipsoid",
-});
-
-// Ion Terrain 사용
-await setupTerrain(viewer, {
-  provider: "ion",
-  assetId: 1,
-});
-
-// 커스텀 Terrain 서버
-await setupTerrain(viewer, {
-  provider: "custom",
-  url: "https://your-terrain-server.com/tiles",
-});
-```
-
-### 2. Marker 생성
-
-```typescript
-import { createMarker, createMarkers } from "@pf-dev/map";
-
-// 단일 마커
-createMarker(viewer, {
-  id: "marker-01",
-  position: { longitude: 127.1, latitude: 37.5, height: 0 },
-  icon: "/icons/pin.png",
-  label: "서울역",
-  onClick: (entity) => {
-    console.log("Marker clicked:", entity.id);
-  },
-});
-
-// 다중 마커
-createMarkers(viewer, [
-  {
-    id: "marker-01",
-    position: { longitude: 127.1, latitude: 37.5, height: 0 },
-    label: "서울역",
-  },
-  {
-    id: "marker-02",
-    position: { longitude: 127.2, latitude: 37.6, height: 0 },
-    label: "강남역",
-  },
-]);
-```
-
-### 3. Cluster 생성
-
-```typescript
-import { createCluster } from "@pf-dev/map";
-
-const markers = [
-  {
-    id: "marker-01",
-    position: { longitude: 127.1, latitude: 37.5, height: 0 },
-    label: "서울역",
-  },
-  {
-    id: "marker-02",
-    position: { longitude: 127.2, latitude: 37.6, height: 0 },
-    label: "강남역",
-  },
-];
-
-const cluster = await createCluster(viewer, "cluster-01", markers, {
-  enabled: true,
-  pixelRange: 50,
-  minimumClusterSize: 2,
-});
-```
-
-### 4. Camera 제어
-
-```typescript
-import { flyTo, setView, zoomToEntity } from "@pf-dev/map";
-
-// 애니메이션과 함께 이동
-flyTo(viewer, {
-  destination: {
-    longitude: 127.1,
-    latitude: 37.5,
-    height: 1000,
-  },
-  duration: 2,
-});
-
-// 즉시 카메라 설정
-setView(viewer, {
-  longitude: 127.1,
-  latitude: 37.5,
-  height: 1000,
-  heading: 0,
-  pitch: -90,
-  roll: 0,
-});
-
-// Entity로 줌
-const entity = viewer.entities.getById("marker-01");
-if (entity) {
-  zoomToEntity(viewer, entity, {
-    range: 1000,
-    pitch: -45,
-  });
+function App() {
+  return (
+    <MapViewer className="w-full h-screen" ionToken={import.meta.env.VITE_ION_TOKEN}>
+      <Imagery provider="osm" />
+      <Terrain provider="ellipsoid" />
+      <Tiles3D ionAssetId={12345} />
+    </MapViewer>
+  );
 }
 ```
 
-### 5. Store 사용
+### 2. Imagery 옵션
 
-```typescript
-import { useViewerStore } from "@pf-dev/map";
+```tsx
+// OpenStreetMap
+<Imagery provider="osm" />
 
-const { viewer, markers, clusters } = useViewerStore();
+// Cesium Ion
+<Imagery provider="ion" assetId={2} />
 
-// 마커 조회
-const marker = useViewerStore.getState().getMarker("marker-01");
+// Bing Maps
+<Imagery provider="bing" apiKey="YOUR_BING_KEY" />
 
-// 마커 제거
-useViewerStore.getState().removeMarker("marker-01");
+// ArcGIS
+<Imagery provider="arcgis" />
 
-// 전체 초기화
-useViewerStore.getState().clear();
+// VWorld (한국)
+<Imagery provider="vworld" apiKey="YOUR_VWORLD_KEY" vworldLayer="Base" />
+
+// Kakao (한국)
+<Imagery provider="kakao" />
 ```
 
-## API 문서
+### 3. Terrain 옵션
 
-### Viewer
+```tsx
+// 평면 지구 (기본값, Ion 불필요)
+<Terrain provider="ellipsoid" />
 
-#### `createViewer(container, config)`
+// Cesium Ion Terrain
+<Terrain provider="ion" assetId={1} />
 
-Cesium Viewer를 생성합니다.
+// 커스텀 Terrain 서버
+<Terrain provider="custom" url="https://your-terrain-server.com/tiles" />
+```
 
-**Parameters:**
+### 4. 3D Tiles
 
-- `container`: HTMLElement | string - Viewer를 렌더링할 컨테이너
-- `config`: ViewerConfig - Viewer 설정 옵션
+```tsx
+// URL로 로드
+<Tiles3D url="/path/to/tileset.json" />
 
-**Returns:** `Viewer`
+// Ion Asset으로 로드
+<Tiles3D
+  ionAssetId={12345}
+  show={true}
+  onReady={(tileset) => console.log("Loaded:", tileset)}
+  onError={(error) => console.error("Error:", error)}
+/>
+```
 
-#### `setupImagery(viewer, config)`
+### 5. Camera 제어
 
-이미지리 프로바이더를 설정합니다.
+```tsx
+import { useMapStore } from "@pf-dev/map";
 
-**Parameters:**
+function CameraControls() {
+  const { flyTo, lookAt, setView, cameraPosition } = useMapStore();
 
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `config`: ImageryConfig - 이미지리 설정
+  const handleFlyTo = () => {
+    flyTo({
+      longitude: 127.1,
+      latitude: 37.5,
+      height: 1000,
+      duration: 2,
+    });
+  };
 
-**Supported Providers:**
+  const handleLookAt = () => {
+    lookAt({
+      longitude: 127.1,
+      latitude: 37.5,
+      height: 100,
+      distance: 500,
+      pitch: -45,
+    });
+  };
 
-- `ion` - Cesium Ion (assetId 필요)
-- `osm` - OpenStreetMap
-- `bing` - Bing Maps (API key 필요)
-- `arcgis` - ArcGIS
+  const handleSetView = () => {
+    setView({
+      longitude: 127.1,
+      latitude: 37.5,
+      height: 1000,
+      heading: 0,
+      pitch: -90,
+    });
+  };
 
-#### `setupTerrain(viewer, config)`
+  return (
+    <div>
+      <button onClick={handleFlyTo}>Fly To</button>
+      <button onClick={handleLookAt}>Look At</button>
+      <button onClick={handleSetView}>Set View</button>
+      <p>Current: {JSON.stringify(cameraPosition)}</p>
+    </div>
+  );
+}
+```
 
-터레인을 설정합니다.
+### 6. Feature Store 사용
 
-**Parameters:**
+Feature Store는 그룹 기반으로 Entity를 관리합니다.
 
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `config`: TerrainConfig - 터레인 설정
+```tsx
+import { useFeatureStore } from "@pf-dev/map";
 
-**Supported Providers:**
+function FeatureManager() {
+  const { addFeature, removeFeature, getFeature, findByProperty, clearGroup } = useFeatureStore();
 
-- `ellipsoid` - 평면 지구 (기본값, Ion 불필요)
-- `ion` - Cesium Ion Terrain (assetId 필요)
-- `custom` - 커스텀 Terrain 서버 (url 필요)
+  // Feature 추가 (Entity 반환)
+  const entity = addFeature("sensors", "sensor-001", {
+    position: { longitude: 127.1, latitude: 37.5, height: 0 },
+    properties: { type: "temperature", status: "active", value: 25.5 },
+  });
 
-### Marker
+  // 반환된 Entity에 스타일 적용 (앱에서 직접)
+  if (entity) {
+    entity.billboard = {
+      image: "/icons/sensor.png",
+      width: 32,
+      height: 32,
+    };
+  }
 
-#### `createMarker(viewer, config)`
+  // ID로 Feature 조회
+  const feature = getFeature("sensors", "sensor-001");
 
-단일 마커를 생성합니다.
+  // Property로 검색 (객체 매칭)
+  const activeFeatures = findByProperty("sensors", { status: "active" });
 
-**Parameters:**
+  // Property로 검색 (함수 필터)
+  const hotSensors = findByProperty("sensors", (props) => (props.value as number) > 30);
 
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `config`: MarkerConfig - 마커 설정
+  // Feature 삭제
+  removeFeature("sensors", "sensor-001");
 
-**Returns:** `Entity`
+  // 그룹 전체 삭제
+  clearGroup("sensors");
+}
+```
 
-#### `updateMarker(entity, updates)`
+#### Feature Store API
 
-마커를 업데이트합니다.
-
-**Parameters:**
-
-- `entity`: Entity - 업데이트할 마커 엔티티
-- `updates`: Partial<MarkerConfig> - 업데이트할 속성
-
-#### `removeMarker(id)`
-
-마커를 제거합니다.
-
-**Parameters:**
-
-- `id`: string - 마커 ID
-
-### Cluster
-
-#### `createCluster(viewer, id, markers, config)`
-
-클러스터를 생성합니다.
-
-**Parameters:**
-
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `id`: string - 클러스터 ID
-- `markers`: MarkerConfig[] - 마커 설정 배열
-- `config`: ClusterConfig - 클러스터 설정
-
-**Returns:** `Promise<CustomDataSource>`
-
-### Camera
-
-#### `flyTo(viewer, options)`
-
-애니메이션과 함께 카메라를 이동합니다.
-
-**Parameters:**
-
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `options`: FlyToOptions - FlyTo 옵션
-
-#### `setView(viewer, destination)`
-
-즉시 카메라를 설정합니다.
-
-**Parameters:**
-
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `destination`: CameraDestination - 카메라 목적지
-
-#### `zoomToEntity(viewer, entity, offset?)`
-
-특정 Entity로 줌합니다.
-
-**Parameters:**
-
-- `viewer`: Viewer - Cesium Viewer 인스턴스
-- `entity`: Entity - 대상 엔티티
-- `offset`: { heading?, pitch?, range? } - 카메라 오프셋
+| 메서드                                      | 설명                       |
+| ------------------------------------------- | -------------------------- |
+| `addFeature(groupId, featureId, options)`   | Feature 추가 → Entity 반환 |
+| `removeFeature(groupId, featureId)`         | Feature 삭제               |
+| `getFeature(groupId, featureId)`            | ID로 조회                  |
+| `hasFeature(groupId, featureId)`            | 존재 여부                  |
+| `updatePosition(groupId, featureId, coord)` | 위치 업데이트              |
+| `findByProperty(groupId, filter)`           | 그룹 내 속성 검색          |
+| `findAllByProperty(filter)`                 | 전체 속성 검색             |
+| `getGroup(groupId)`                         | 그룹 조회                  |
+| `clearGroup(groupId)`                       | 그룹 내 Feature 제거       |
+| `removeGroup(groupId)`                      | 그룹 삭제                  |
+| `getGroupIds()`                             | 그룹 ID 목록               |
+| `getFeatureCount(groupId?)`                 | Feature 개수               |
+| `clearAll()`                                | 전체 삭제                  |
 
 ## 타입 정의
 
 ```typescript
+// 좌표
 interface Coordinate {
   longitude: number;
   latitude: number;
   height?: number;
 }
 
-interface MarkerConfig {
-  id: string;
+// Feature 옵션
+interface FeatureOptions {
   position: Coordinate;
-  icon?: string;
-  label?: string;
-  description?: string;
-  color?: string;
-  scale?: number;
-  onClick?: (entity: Entity) => void;
+  properties?: Record<string, unknown>;
 }
 
-interface ClusterConfig {
-  enabled: boolean;
-  pixelRange?: number;
-  minimumClusterSize?: number;
-}
+// Property 필터
+type PropertyFilter = Record<string, unknown> | ((properties: Record<string, unknown>) => boolean);
 
+// Camera
 interface FlyToOptions {
-  destination: CameraDestination;
+  longitude: number;
+  latitude: number;
+  height?: number;
+  heading?: number;
+  pitch?: number;
   duration?: number;
-  complete?: () => void;
-  cancel?: () => void;
+}
+
+interface LookAtOptions {
+  longitude: number;
+  latitude: number;
+  height?: number;
+  distance?: number;
+  heading?: number;
+  pitch?: number;
+  duration?: number;
 }
 ```
 

@@ -4,12 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./viewer": "./src/viewer/index.ts",
-    "./marker": "./src/marker/index.ts",
-    "./cluster": "./src/cluster/index.ts",
-    "./camera": "./src/camera/index.ts",
-    "./utils": "./src/utils/index.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",
@@ -20,7 +15,9 @@
     "clean": "rimraf dist node_modules .turbo"
   },
   "peerDependencies": {
-    "cesium": "^1.121.0"
+    "cesium": "^1.121.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "dependencies": {
     "zustand": "catalog:"
@@ -28,7 +25,11 @@
   "devDependencies": {
     "@pf-dev/eslint-config": "workspace:*",
     "@pf-dev/typescript-config": "workspace:*",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "cesium": "^1.121.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "rimraf": "^6.0.1",
     "typescript": "catalog:"
   }
