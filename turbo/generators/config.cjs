@@ -213,9 +213,11 @@ module.exports = function generator(plop) {
       // Format generated files with prettier
       function (answers) {
         const appPath = path.join(rootPath, "apps", answers.name);
+        // Windows 경로 구분자(\)를 POSIX 스타일(/)로 정규화하여 glob 패턴 문제를 방지합니다.
+        const normalizedAppPath = appPath.replace(/\\/g, "/");
         try {
           console.log(`\nFormatting generated files with prettier...`);
-          execSync(`pnpm prettier --write "${appPath}/**/*"`, {
+          execSync(`pnpm prettier --write "${normalizedAppPath}/**/*"`, {
             cwd: rootPath,
             stdio: "inherit",
           });
