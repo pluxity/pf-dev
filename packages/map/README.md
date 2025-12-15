@@ -682,7 +682,7 @@ type FeatureVisual =
   | {
       type: "rectangle";
       image?: string;
-      material?: any;
+      material?: MaterialProperty;
       width?: number; // meters
       height?: number; // meters
       rotation?: number; // radians

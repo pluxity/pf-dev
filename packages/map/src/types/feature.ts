@@ -1,4 +1,11 @@
-import type { Color, Entity, HeightReference, VerticalOrigin, Resource, Material } from "cesium";
+import type {
+  Color,
+  Entity,
+  HeightReference,
+  VerticalOrigin,
+  Resource,
+  MaterialProperty,
+} from "cesium";
 
 // ============================================================================
 // Position
@@ -61,7 +68,7 @@ export interface PointVisual extends BaseVisual {
 export interface RectangleVisual extends BaseVisual {
   type: "rectangle";
   image?: string;
-  material?: Material;
+  material?: MaterialProperty;
   width?: number; // meters
   height?: number; // meters
   rotation?: number; // radians
