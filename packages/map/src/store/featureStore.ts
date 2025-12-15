@@ -166,12 +166,9 @@ function resolveVisibility(meta?: FeatureMeta, visual?: FeatureVisual) {
 // ============================================================================
 
 export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, get) => ({
-  // State
   entities: new Map(),
   meta: new Map(),
   featureStates: new Map(),
-
-  // ========== 단일 Feature ==========
 
   addFeature: (id, options) => {
     const mapState = useMapStore.getState();
@@ -186,7 +183,6 @@ export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, 
     const cartesian = coordinateToCartesian3(options.position);
     const meta = options.meta;
 
-    // layerName이 있으면 해당 레이어 DataSource 사용, 없으면 기본 DataSource 사용
     let targetDataSource = dataSource;
     if (meta?.layerName) {
       const layerDS = getOrCreateLayerDataSource(meta.layerName);
@@ -298,8 +294,6 @@ export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, 
     return true;
   },
 
-  // ========== 복수 Features ==========
-
   addFeatures: (features: Feature[]) => {
     const mapState = useMapStore.getState();
     const { viewer, dataSource, getOrCreateLayerDataSource } = mapState;
@@ -318,7 +312,6 @@ export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, 
       const cartesian = coordinateToCartesian3(feature.position);
       const meta = feature.meta;
 
-      // layerName이 있으면 해당 레이어 DataSource 사용, 없으면 기본 DataSource 사용
       let targetDataSource = dataSource;
       if (meta?.layerName) {
         const layerDS = getOrCreateLayerDataSource(meta.layerName);
@@ -470,8 +463,6 @@ export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, 
 
     set({ entities: new Map(), meta: new Map(), featureStates: new Map() });
   },
-
-  // ========== State Management ==========
 
   setFeatureState: (id, state) => {
     set((prevState) => {

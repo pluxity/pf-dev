@@ -5,7 +5,6 @@ import type { MapViewerProps } from "../types/index.ts";
 
 export type { MapViewerProps };
 
-// 초기 카메라 위치 (수원)
 const DEFAULT_CAMERA_POSITION = {
   longitude: 126.970445,
   latitude: 37.394434,

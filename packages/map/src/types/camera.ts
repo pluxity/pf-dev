@@ -2,7 +2,7 @@ import type { Entity } from "cesium";
 import type { Coordinate } from "./feature.ts";
 
 // ============================================================================
-// Camera Position (현재 카메라 상태)
+// Camera Position
 // ============================================================================
 
 export interface CameraPosition {
@@ -14,7 +14,7 @@ export interface CameraPosition {
 }
 
 // ============================================================================
-// FlyTo - 특정 좌표로 카메라 이동 (duration: 0 = 즉시)
+// FlyTo
 // ============================================================================
 
 export interface FlyToOptions {
@@ -27,10 +27,9 @@ export interface FlyToOptions {
 }
 
 // ============================================================================
-// LookAt - 단일 대상 바라보기
+// LookAt
 // ============================================================================
 
-// 좌표 기반
 interface LookAtCoordinateOptions {
   longitude: number;
   latitude: number;
@@ -41,7 +40,6 @@ interface LookAtCoordinateOptions {
   duration?: number;
 }
 
-// Feature ID 기반
 interface LookAtFeatureOptions {
   feature: string; // featureId
   distance?: number;
@@ -53,13 +51,11 @@ interface LookAtFeatureOptions {
 export type LookAtOptions = LookAtCoordinateOptions | LookAtFeatureOptions;
 
 // ============================================================================
-// ZoomTo - 영역/다중 대상 맞춤 보기
+// ZoomTo
 // ============================================================================
 
-// Feature 필터 타입 (ID 배열 또는 필터 함수)
 export type FeatureSelector = string[] | ((entity: Entity) => boolean);
 
-// 좌표 배열
 interface ZoomToCoordinatesOptions {
   coordinates: Coordinate[];
   heading?: number;
@@ -67,7 +63,6 @@ interface ZoomToCoordinatesOptions {
   duration?: number;
 }
 
-// Feature 배열 또는 필터 함수
 interface ZoomToFeaturesOptions {
   features: FeatureSelector;
   heading?: number;
@@ -75,7 +70,6 @@ interface ZoomToFeaturesOptions {
   duration?: number;
 }
 
-// WKT Boundary
 interface ZoomToBoundaryOptions {
   boundary: string; // WKT Polygon
   heading?: number;

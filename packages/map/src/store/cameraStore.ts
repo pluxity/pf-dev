@@ -90,7 +90,6 @@ interface CameraActions {
 // ============================================================================
 
 export const useCameraStore = create<CameraState & CameraActions>((set) => {
-  // Private: BoundingSphere로 카메라 이동
   const flyToBoundingSphere = (
     boundingSphere: BoundingSphere,
     heading: number,
@@ -111,10 +110,8 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
   };
 
   return {
-    // State
     cameraPosition: null,
 
-    // Actions
     _updateCameraPosition: () => {
       const viewer = useMapStore.getState().viewer;
       if (!viewer || viewer.isDestroyed()) return;
@@ -156,7 +153,6 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
 
       const { distance = 1000, heading = 0, pitch = -45, duration = 1 } = options;
 
-      // Feature ID 기반
       if (isLookAtFeature(options)) {
         const entity = useFeatureStore.getState().getFeature(options.feature);
         if (!entity) return;
@@ -178,7 +174,6 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
         return;
       }
 
-      // 좌표 기반
       const { longitude, latitude, height = 0 } = options;
       const target = Cartesian3.fromDegrees(longitude, latitude, height);
       const offset = new HeadingPitchRange(
@@ -199,7 +194,6 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
 
       const { heading = 0, pitch = -45, duration = 1 } = options;
 
-      // 좌표 배열
       if (isZoomToCoordinates(options)) {
         const points = options.coordinates.map(coordinateToCartesian3);
         if (points.length === 0) return;
@@ -209,13 +203,11 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
         return;
       }
 
-      // Feature 배열 또는 필터 함수
       if (isZoomToFeatures(options)) {
         const { features } = options;
         const coordinates: Coordinate[] = [];
 
         if (Array.isArray(features)) {
-          // ID 배열
           for (const featureId of features) {
             const entity = useFeatureStore.getState().getFeature(featureId);
             if (entity) {
@@ -224,7 +216,6 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
             }
           }
         } else {
-          // 필터 함수
           const entities = useFeatureStore.getState().getFeatures(features);
           for (const entity of entities) {
             const coord = getEntityCoordinate(entity);
@@ -240,7 +231,6 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
         return;
       }
 
-      // WKT Boundary
       if (isZoomToBoundary(options)) {
         const coordinates = parseWKTPolygon(options.boundary);
         if (coordinates.length === 0) return;
@@ -253,5 +243,4 @@ export const useCameraStore = create<CameraState & CameraActions>((set) => {
   };
 });
 
-// 컴포넌트 외부에서 사용할 때 편의를 위한 alias
 export const cameraStore = useCameraStore;

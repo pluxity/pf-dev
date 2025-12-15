@@ -96,7 +96,6 @@ export interface Feature {
   meta?: FeatureMeta;
 }
 
-// 기존 호환용 (단일 추가 시)
 export interface FeatureOptions {
   position: Coordinate;
   properties?: Record<string, unknown>;
