@@ -1,5 +1,5 @@
 // Components
-export { MapViewer, Imagery, Terrain, Tiles3D } from "./components/index.ts";
+export { MapViewer, Imagery, Terrain, Tiles3D, FeatureStateEffects } from "./components/index.ts";
 
 // Store
 export {
@@ -31,6 +31,13 @@ export type {
   // Tiles3D
   Tiles3DProps,
   Tiles3DSource,
+  // Feature State
+  FeatureStateEffectsProps,
+  StateEffect,
+  SilhouetteEffect,
+  RippleEffect,
+  GlowEffect,
+  OutlineEffect,
   // Feature
   Coordinate,
   Feature,
@@ -38,11 +45,15 @@ export type {
   FeaturePatch,
   FeatureVisual,
   FeatureRenderType,
+  BillboardVisual,
+  ModelVisual,
+  PointVisual,
+  RectangleVisual,
   FeatureMeta,
   PropertyFilter,
   FeatureFilter,
   FeatureSelectorType,
-  FeatureState,
+  FeatureStoreState,
   FeatureActions,
 } from "./types/index.ts";
 

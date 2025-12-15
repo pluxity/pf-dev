@@ -1,4 +1,4 @@
-import type { Color, Entity, HeightReference, VerticalOrigin } from "cesium";
+import type { Color, Entity, HeightReference, VerticalOrigin, Resource, Material } from "cesium";
 
 // ============================================================================
 // Position
@@ -14,7 +14,7 @@ export interface Coordinate {
 // Feature
 // ============================================================================
 
-export type FeatureRenderType = "billboard" | "model" | "point";
+export type FeatureRenderType = "billboard" | "model" | "point" | "rectangle";
 
 export interface DisplayConditionRange {
   near?: number;
@@ -40,9 +40,10 @@ export interface BillboardVisual extends BaseVisual {
 
 export interface ModelVisual extends BaseVisual {
   type: "model";
-  uri: string;
+  uri: string | Resource;
   scale?: number;
   minimumPixelSize?: number;
+  heightReference?: HeightReference;
   color?: Color;
   silhouetteColor?: Color;
   silhouetteSize?: number;
@@ -57,7 +58,21 @@ export interface PointVisual extends BaseVisual {
   heightReference?: HeightReference;
 }
 
-export type FeatureVisual = BillboardVisual | ModelVisual | PointVisual;
+export interface RectangleVisual extends BaseVisual {
+  type: "rectangle";
+  image?: string;
+  material?: Material;
+  width?: number; // meters
+  height?: number; // meters
+  rotation?: number; // radians
+  stRotation?: number; // texture rotation in radians
+  fill?: boolean;
+  outline?: boolean;
+  outlineColor?: Color;
+  outlineWidth?: number;
+}
+
+export type FeatureVisual = BillboardVisual | ModelVisual | PointVisual | RectangleVisual;
 
 export interface FeatureMeta {
   layerName?: string;
@@ -108,9 +123,10 @@ export type FeatureSelector = string[] | FeatureFilter;
 // Feature Store Types
 // ============================================================================
 
-export interface FeatureState {
+export interface FeatureStoreState {
   entities: Map<string, Entity>;
   meta: Map<string, FeatureMeta>;
+  featureStates: Map<string, string>; // featureId -> state
 }
 
 export interface FeatureActions {
@@ -135,4 +151,9 @@ export interface FeatureActions {
   getFeatureCount: () => number;
   getAllFeatures: () => Entity[];
   clearAll: () => void;
+
+  // State Management
+  setFeatureState: (id: string, state: string) => void;
+  getFeatureState: (id: string) => string | undefined;
+  clearFeatureState: (id: string) => void;
 }

@@ -1,17 +1,22 @@
 import { create } from "zustand";
 import {
   Cartesian3,
+  Cartographic,
   ConstantPositionProperty,
   DistanceDisplayCondition,
   JulianDate,
   BillboardGraphics,
   ModelGraphics,
   PointGraphics,
+  PolygonGraphics,
+  PolygonHierarchy,
+  ImageMaterialProperty,
+  Math as CesiumMath,
   type Entity,
 } from "cesium";
 import { useMapStore } from "./mapStore.ts";
 import type {
-  FeatureState,
+  FeatureStoreState,
   FeatureActions,
   PropertyFilter,
   FeatureSelector,
@@ -83,9 +88,11 @@ function applyVisual(entity: Entity, visual?: FeatureVisual) {
         uri: visual.uri,
         scale: visual.scale,
         minimumPixelSize: visual.minimumPixelSize,
+        heightReference: visual.heightReference,
         color: visual.color,
         silhouetteColor: visual.silhouetteColor,
         silhouetteSize: visual.silhouetteSize,
+        distanceDisplayCondition,
         show: visual.show,
       });
       break;
@@ -99,6 +106,46 @@ function applyVisual(entity: Entity, visual?: FeatureVisual) {
         heightReference: visual.heightReference,
         disableDepthTestDistance: visual.disableDepthTestDistance,
         distanceDisplayCondition,
+        show: visual.show,
+      });
+      break;
+    }
+    case "rectangle": {
+      // 중심점에서 width/height만큼 떨어진 4개 코너 계산
+      const position = entity.position?.getValue(JulianDate.now());
+      if (!position) break;
+
+      // Cartesian3를 Cartographic으로 변환
+      const cartographic = Cartographic.fromCartesian(position);
+      const lon = CesiumMath.toDegrees(cartographic.longitude);
+      const lat = CesiumMath.toDegrees(cartographic.latitude);
+      const height = cartographic.height;
+
+      const width = visual.width ?? 50; // meters
+      const rectHeight = visual.height ?? 50; // meters
+
+      // 4개 코너 좌표 계산 (중심점 기준으로 동/서/남/북으로 offset)
+      // 1도 = 약 111km (위도), 경도는 위도에 따라 다름
+      const halfWidthDeg = width / 2 / (111320 * Math.cos(CesiumMath.toRadians(lat)));
+      const halfHeightDeg = rectHeight / 2 / 110540;
+
+      const corners = [
+        Cartesian3.fromDegrees(lon - halfWidthDeg, lat - halfHeightDeg, height),
+        Cartesian3.fromDegrees(lon + halfWidthDeg, lat - halfHeightDeg, height),
+        Cartesian3.fromDegrees(lon + halfWidthDeg, lat + halfHeightDeg, height),
+        Cartesian3.fromDegrees(lon - halfWidthDeg, lat + halfHeightDeg, height),
+      ];
+
+      entity.polygon = new PolygonGraphics({
+        hierarchy: new PolygonHierarchy(corners),
+        material: visual.image
+          ? new ImageMaterialProperty({ image: visual.image })
+          : visual.material,
+        fill: visual.fill ?? true,
+        outline: visual.outline ?? false,
+        outlineColor: visual.outlineColor,
+        outlineWidth: visual.outlineWidth ?? 1,
+        stRotation: visual.stRotation,
         show: visual.show,
       });
       break;
@@ -118,15 +165,17 @@ function resolveVisibility(meta?: FeatureMeta, visual?: FeatureVisual) {
 // Store
 // ============================================================================
 
-export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) => ({
+export const useFeatureStore = create<FeatureStoreState & FeatureActions>((set, get) => ({
   // State
   entities: new Map(),
   meta: new Map(),
+  featureStates: new Map(),
 
   // ========== 단일 Feature ==========
 
   addFeature: (id, options) => {
-    const viewer = useMapStore.getState().viewer;
+    const mapState = useMapStore.getState();
+    const { viewer, dataSource, getOrCreateLayerDataSource } = mapState;
     if (!viewer || viewer.isDestroyed()) return null;
 
     if (get().entities.has(id)) {
@@ -135,10 +184,20 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
     }
 
     const cartesian = coordinateToCartesian3(options.position);
-
     const meta = options.meta;
 
-    const entity = viewer.entities.add({
+    // layerName이 있으면 해당 레이어 DataSource 사용, 없으면 기본 DataSource 사용
+    let targetDataSource = dataSource;
+    if (meta?.layerName) {
+      const layerDS = getOrCreateLayerDataSource(meta.layerName);
+      if (layerDS) {
+        targetDataSource = layerDS;
+      }
+    }
+
+    if (!targetDataSource) return null;
+
+    const entity = targetDataSource.entities.add({
       id,
       position: cartesian,
       properties: options.properties as unknown as Entity["properties"],
@@ -165,22 +224,24 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   },
 
   removeFeature: (id) => {
-    const viewer = useMapStore.getState().viewer;
+    const { viewer, dataSource } = useMapStore.getState();
     const entity = get().entities.get(id);
 
     if (!entity) return false;
 
-    if (viewer && !viewer.isDestroyed()) {
-      viewer.entities.remove(entity);
+    if (viewer && !viewer.isDestroyed() && dataSource) {
+      dataSource.entities.remove(entity);
       viewer.scene.requestRender();
     }
 
     set((state) => {
       const newEntities = new Map(state.entities);
       const newMeta = new Map(state.meta);
+      const newFeatureStates = new Map(state.featureStates);
       newEntities.delete(id);
       newMeta.delete(id);
-      return { entities: newEntities, meta: newMeta };
+      newFeatureStates.delete(id);
+      return { entities: newEntities, meta: newMeta, featureStates: newFeatureStates };
     });
 
     return true;
@@ -240,7 +301,8 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   // ========== 복수 Features ==========
 
   addFeatures: (features: Feature[]) => {
-    const viewer = useMapStore.getState().viewer;
+    const mapState = useMapStore.getState();
+    const { viewer, dataSource, getOrCreateLayerDataSource } = mapState;
     if (!viewer || viewer.isDestroyed()) return [];
 
     const added: Entity[] = [];
@@ -256,7 +318,18 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
       const cartesian = coordinateToCartesian3(feature.position);
       const meta = feature.meta;
 
-      const entity = viewer.entities.add({
+      // layerName이 있으면 해당 레이어 DataSource 사용, 없으면 기본 DataSource 사용
+      let targetDataSource = dataSource;
+      if (meta?.layerName) {
+        const layerDS = getOrCreateLayerDataSource(meta.layerName);
+        if (layerDS) {
+          targetDataSource = layerDS;
+        }
+      }
+
+      if (!targetDataSource) continue;
+
+      const entity = targetDataSource.entities.add({
         id: feature.id,
         position: cartesian,
         properties: feature.properties as unknown as Entity["properties"],
@@ -293,15 +366,15 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   },
 
   removeFeatures: (selector: FeatureSelector) => {
-    const viewer = useMapStore.getState().viewer;
+    const { viewer, dataSource } = useMapStore.getState();
     const toRemove: string[] = [];
     const { entities, meta } = get();
 
     entities.forEach((entity, id) => {
       if (matchSelector(selector, id, entity, meta.get(id))) {
         toRemove.push(id);
-        if (viewer && !viewer.isDestroyed()) {
-          viewer.entities.remove(entity);
+        if (viewer && !viewer.isDestroyed() && dataSource) {
+          dataSource.entities.remove(entity);
         }
       }
     });
@@ -310,9 +383,13 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
       set((state) => {
         const newEntities = new Map(state.entities);
         const newMeta = new Map(state.meta);
-        toRemove.forEach((id) => newEntities.delete(id));
-        toRemove.forEach((id) => newMeta.delete(id));
-        return { entities: newEntities, meta: newMeta };
+        const newFeatureStates = new Map(state.featureStates);
+        toRemove.forEach((id) => {
+          newEntities.delete(id);
+          newMeta.delete(id);
+          newFeatureStates.delete(id);
+        });
+        return { entities: newEntities, meta: newMeta, featureStates: newFeatureStates };
       });
 
       if (viewer && !viewer.isDestroyed()) {
@@ -382,16 +459,38 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   },
 
   clearAll: () => {
-    const viewer = useMapStore.getState().viewer;
+    const { viewer, dataSource } = useMapStore.getState();
 
-    if (viewer && !viewer.isDestroyed()) {
+    if (viewer && !viewer.isDestroyed() && dataSource) {
       get().entities.forEach((entity) => {
-        viewer.entities.remove(entity);
+        dataSource.entities.remove(entity);
       });
       viewer.scene.requestRender();
     }
 
-    set({ entities: new Map(), meta: new Map() });
+    set({ entities: new Map(), meta: new Map(), featureStates: new Map() });
+  },
+
+  // ========== State Management ==========
+
+  setFeatureState: (id, state) => {
+    set((prevState) => {
+      const newFeatureStates = new Map(prevState.featureStates);
+      newFeatureStates.set(id, state);
+      return { featureStates: newFeatureStates };
+    });
+  },
+
+  getFeatureState: (id) => {
+    return get().featureStates.get(id);
+  },
+
+  clearFeatureState: (id) => {
+    set((prevState) => {
+      const newFeatureStates = new Map(prevState.featureStates);
+      newFeatureStates.delete(id);
+      return { featureStates: newFeatureStates };
+    });
   },
 }));
 
