@@ -1,0 +1,42 @@
+{
+  "name": "@pf-dev/three",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./utils": "./src/utils/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "clean": "rimraf dist node_modules .turbo"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "three": "catalog:",
+    "@react-three/fiber": "catalog:"
+  },
+  "dependencies": {
+    "@react-three/drei": "catalog:",
+    "three-stdlib": "catalog:",
+    "zustand": "catalog:"
+  },
+  "devDependencies": {
+    "@pf-dev/eslint-config": "workspace:*",
+    "@pf-dev/typescript-config": "workspace:*",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@types/three": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "three": "catalog:",
+    "@react-three/fiber": "catalog:",
+    "rimraf": "^6.0.1",
+    "typescript": "catalog:"
+  }
+}
