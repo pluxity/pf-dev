@@ -7,14 +7,7 @@
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@pf-dev/eslint-config",
-    "@pf-dev/typescript-config",
-    "@pf-dev/api",
-    "@pf-dev/cctv",
-    "@pf-dev/map",
-    "@pf-dev/ui"
-  ],
+  "ignore": [],
   "privatePackages": {
     "version": true,
     "tag": true
