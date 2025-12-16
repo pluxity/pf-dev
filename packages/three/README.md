@@ -74,7 +74,7 @@ function Building({ url }) {
 ### 순수 함수 (Canvas 외부)
 
 ```typescript
-import { traverseModel, findMeshByName, disposeMesh } from "@pf-dev/three/utils";
+import { traverseModel, findMeshByName, disposeScene } from "@pf-dev/three/utils";
 import { GLTFLoader } from "three-stdlib";
 
 async function analyzeModel(url: string) {

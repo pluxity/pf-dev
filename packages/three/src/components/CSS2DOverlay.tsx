@@ -6,7 +6,6 @@ import type { CSS2DOverlayProps } from "../types/overlay";
 export function CSS2DOverlay({ position, children, className }: CSS2DOverlayProps) {
   const { scene } = useThree();
   const divRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<CSS2DObject | null>(null);
 
   useEffect(() => {
     if (!divRef.current) return;
@@ -20,7 +19,6 @@ export function CSS2DOverlay({ position, children, className }: CSS2DOverlayProp
     }
 
     scene.add(label);
-    labelRef.current = label;
 
     return () => {
       scene.remove(label);

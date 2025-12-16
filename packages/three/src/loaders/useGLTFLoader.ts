@@ -34,7 +34,7 @@ export function useGLTFLoader(
 
     let cancelled = false;
 
-    const loadModel = async () => {
+    const loadModel = () => {
       if (cancelled) return;
 
       setIsLoading(true);
