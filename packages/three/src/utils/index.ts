@@ -5,7 +5,7 @@ export {
   filterMeshes,
   findMeshByName,
   findMeshesByName,
-} from "./traverse.ts";
+} from "./traverse";
 
 // Dispose
 export {
@@ -14,10 +14,10 @@ export {
   disposeMeshes,
   disposeMaterial,
   disposeGeometry,
-} from "./dispose.ts";
+} from "./dispose";
 
 // Geometry
-export { getMeshInfo, computeBoundingBox, getCenterPoint, getSize } from "./geometry.ts";
+export { getMeshInfo, computeBoundingBox, getCenterPoint, getSize } from "./geometry";
 
 // Materials
 export {
@@ -26,7 +26,7 @@ export {
   setMaterialColor,
   setMaterialOpacity,
   getAllMaterials,
-} from "./materials.ts";
+} from "./materials";
 
 // Types
-export type { TraverseCallback, MeshCallback, MeshPredicate, MeshInfo } from "./types.ts";
+export type { TraverseCallback, MeshCallback, MeshPredicate, MeshInfoData } from "./types";

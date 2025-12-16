@@ -1,11 +1,8 @@
 import { Box3, Vector3 } from "three";
 import type { Mesh, BufferGeometry } from "three";
-import type { MeshInfo } from "./types.ts";
+import type { MeshInfoData } from "./types";
 
-/**
- * Mesh 정보 추출
- */
-export function getMeshInfo(mesh: Mesh): MeshInfo {
+export function getMeshInfo(mesh: Mesh): MeshInfoData {
   const geometry = mesh.geometry;
   const vertices = geometry.attributes.position?.count ?? 0;
   const triangles = geometry.index ? geometry.index.count / 3 : vertices / 3;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FBXLoader } from "three-stdlib";
-import { useModelStore } from "../store/modelStore.ts";
-import type { UseFBXLoaderOptions, UseFBXLoaderReturn } from "../types/loader.ts";
+import { useFacilityStore } from "../store/facilityStore";
+import type { UseFBXLoaderOptions, UseFBXLoaderReturn } from "../types/loader";
 
 export function useFBXLoader(
   url: string | null,
@@ -20,12 +20,17 @@ export function useFBXLoader(
   const [error, setError] = useState<Error | null>(null);
   const [object, setObject] = useState<UseFBXLoaderReturn["object"]>(null);
 
-  const addModel = useModelStore((s) => s.addModel);
-  const updateModelProgress = useModelStore((s) => s.updateModelProgress);
-  const updateModelStatus = useModelStore((s) => s.updateModelStatus);
+  const addFacility = useFacilityStore((s) => s.addFacility);
+  const updateFacilityProgress = useFacilityStore((s) => s.updateFacilityProgress);
+  const updateFacilityStatus = useFacilityStore((s) => s.updateFacilityStatus);
+  const disposeFacility = useFacilityStore((s) => s.disposeFacility);
 
   useEffect(() => {
     if (!url) return;
+
+    if (autoAddToStore) {
+      disposeFacility(modelId);
+    }
 
     let cancelled = false;
 
@@ -39,7 +44,6 @@ export function useFBXLoader(
 
       loader.load(
         url,
-        // onLoad
         (loadedObject) => {
           if (cancelled) return;
           setObject(loadedObject);
@@ -47,7 +51,7 @@ export function useFBXLoader(
           setProgress(100);
 
           if (autoAddToStore) {
-            addModel({
+            addFacility({
               id: modelId,
               url,
               object: loadedObject,
@@ -58,7 +62,6 @@ export function useFBXLoader(
 
           onLoaded?.(loadedObject);
         },
-        // onProgress
         (event) => {
           if (cancelled) return;
           if (event.lengthComputable) {
@@ -67,11 +70,10 @@ export function useFBXLoader(
             onProgress?.(percent);
 
             if (autoAddToStore) {
-              updateModelProgress(modelId, percent);
+              updateFacilityProgress(modelId, percent);
             }
           }
         },
-        // onError
         (err) => {
           if (cancelled) return;
           const error = err instanceof Error ? err : new Error(String(err));
@@ -79,7 +81,7 @@ export function useFBXLoader(
           setIsLoading(false);
 
           if (autoAddToStore) {
-            updateModelStatus(modelId, "error", error.message);
+            updateFacilityStatus(modelId, "error", error.message);
           }
 
           onError?.(error);
@@ -91,18 +93,13 @@ export function useFBXLoader(
 
     return () => {
       cancelled = true;
+
+      if (autoAddToStore) {
+        disposeFacility(modelId);
+      }
     };
-  }, [
-    url,
-    modelId,
-    autoAddToStore,
-    onProgress,
-    onLoaded,
-    onError,
-    addModel,
-    updateModelProgress,
-    updateModelStatus,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, modelId, autoAddToStore]);
 
   return {
     object,

@@ -32,5 +32,11 @@ export default tseslint.config(
     rules: {
       "react-hooks/rules-of-hooks": "off",
     },
+  },
+  {
+    files: ["packages/three/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/immutability": "off",
+    },
   }
 );

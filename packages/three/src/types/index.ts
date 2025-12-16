@@ -1,16 +1,19 @@
-// Model
-export type { ModelStatus, LoadedModel, ModelState, ModelActions, ModelStore } from "./model.ts";
+export type {
+  FacilityStatus,
+  Facility,
+  FacilityState,
+  FacilityActions,
+  FacilityStore,
+} from "./facility";
 
-// Camera
 export type {
   CameraPosition,
   CameraConfig,
   CameraState,
   CameraActions,
   CameraStore,
-} from "./camera.ts";
+} from "./camera";
 
-// Loader
 export type {
   LoaderState,
   LoaderProgress,
@@ -19,7 +22,26 @@ export type {
   UseGLTFLoaderReturn,
   UseFBXLoaderOptions,
   UseFBXLoaderReturn,
-} from "./loader.ts";
+} from "./loader";
 
-// Overlay
-export type { OverlayPosition, CSS2DOverlayProps } from "./overlay.ts";
+export type { OverlayPosition, CSS2DOverlayProps } from "./overlay";
+
+export type {
+  HoveredMesh,
+  MeshInfo,
+  InteractionState,
+  InteractionActions,
+  RaycastOptions,
+} from "./interaction";
+
+export type {
+  AssetType,
+  Asset,
+  Feature,
+  AssetState,
+  AssetActions,
+  AssetStore,
+  FeatureState,
+  FeatureActions,
+  FeatureStore,
+} from "./feature";

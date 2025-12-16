@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { Object3D, Mesh } from "three";
-import type { TraverseCallback, MeshCallback } from "../utils/types.ts";
+import type { TraverseCallback, MeshCallback } from "../utils/types";
 
 export function useModelTraverse(
   object: Object3D | null,

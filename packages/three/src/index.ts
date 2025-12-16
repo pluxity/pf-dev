@@ -1,81 +1,80 @@
-// ============================================================================
-// Components
-// ============================================================================
-export { GLTFModel, FBXModel, CSS2DOverlay } from "./components/index.ts";
-export type { GLTFModelProps, FBXModelProps } from "./components/index.ts";
+export {
+  GLTFModel,
+  FBXModel,
+  CSS2DOverlay,
+  MeshOutline,
+  MeshInfo,
+  MeshInfoCompact,
+  FeatureRenderer,
+} from "./components/index";
+export type { GLTFModelProps, FBXModelProps, MeshInfoProps } from "./components/index";
 
-// ============================================================================
-// Loaders
-// ============================================================================
-export { useGLTFLoader, useFBXLoader } from "./loaders/index.ts";
+export {
+  useFacilityStore,
+  facilityStore,
+  useCameraStore,
+  cameraStore,
+  useInteractionStore,
+  interactionStore,
+  useAssetStore,
+  assetStore,
+  useFeatureStore,
+  featureStore,
+} from "./store/index";
 export type {
-  UseGLTFLoaderOptions,
-  UseGLTFLoaderReturn,
-  UseFBXLoaderOptions,
-  UseFBXLoaderReturn,
-} from "./loaders/index.ts";
-
-// ============================================================================
-// Stores
-// ============================================================================
-export { useModelStore, modelStore, useCameraStore, cameraStore } from "./store/index.ts";
-export type {
-  ModelState,
-  ModelActions,
-  ModelStore,
+  FacilityState,
+  FacilityActions,
+  FacilityStore,
   CameraState,
   CameraActions,
   CameraStore,
-} from "./store/index.ts";
+  InteractionState,
+  InteractionActions,
+  AssetState,
+  AssetActions,
+  AssetStore,
+  FeatureState,
+  FeatureActions,
+  FeatureStore,
+} from "./store/index";
 
-// ============================================================================
-// Hooks
-// ============================================================================
 export {
   useModelTraverse,
   useMeshTraverse,
   useRaycast,
   useMeshFinder,
   useMeshFinderAll,
-} from "./hooks/index.ts";
-export type { UseRaycastOptions, UseRaycastReturn, MeshPredicate } from "./hooks/index.ts";
+  useMeshHover,
+  useAssetLoader,
+} from "./hooks/index";
+export type { UseRaycastOptions, UseRaycastReturn, MeshPredicate } from "./hooks/index";
 
-// ============================================================================
-// Utils (순수 함수)
-// ============================================================================
 export {
-  // Traverse
   traverseModel,
   traverseMeshes,
   filterMeshes,
   findMeshByName,
   findMeshesByName,
-  // Dispose
   disposeMesh,
   disposeScene,
   disposeMeshes,
   disposeMaterial,
   disposeGeometry,
-  // Geometry
   getMeshInfo,
   computeBoundingBox,
   getCenterPoint,
   getSize,
-  // Materials
   cloneMaterial,
   updateMaterialProps,
   setMaterialColor,
   setMaterialOpacity,
   getAllMaterials,
-} from "./utils/index.ts";
-export type { TraverseCallback, MeshCallback, MeshInfo } from "./utils/index.ts";
+} from "./utils/index";
+export type { TraverseCallback, MeshCallback, MeshInfoData } from "./utils/index";
 
-// ============================================================================
-// Types
-// ============================================================================
 export type {
-  ModelStatus,
-  LoadedModel,
+  FacilityStatus,
+  Facility,
   CameraPosition,
   CameraConfig,
   LoaderState,
@@ -83,4 +82,9 @@ export type {
   LoaderOptions,
   OverlayPosition,
   CSS2DOverlayProps,
-} from "./types/index.ts";
+  HoveredMesh,
+  RaycastOptions,
+  AssetType,
+  Asset,
+  Feature,
+} from "./types/index";

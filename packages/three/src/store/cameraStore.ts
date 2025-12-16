@@ -1,17 +1,11 @@
 import { create } from "zustand";
-import type { CameraState, CameraActions } from "../types/camera.ts";
-
-// ============================================================================
-// Store
-// ============================================================================
+import type { CameraState, CameraActions } from "../types/camera";
 
 export const useCameraStore = create<CameraState & CameraActions>((set, get) => ({
-  // State
   currentPosition: null,
   config: {},
   savedStates: new Map(),
 
-  // Actions
   setPosition: (position) => {
     set({ currentPosition: position });
   },
@@ -57,5 +51,4 @@ export const useCameraStore = create<CameraState & CameraActions>((set, get) => 
   },
 }));
 
-// Alias for convenience
 export const cameraStore = useCameraStore;

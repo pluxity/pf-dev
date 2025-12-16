@@ -1,5 +1,5 @@
 import type { Object3D, Mesh } from "three";
-import type { TraverseCallback, MeshCallback, MeshPredicate } from "./types.ts";
+import type { TraverseCallback, MeshCallback, MeshPredicate } from "./types";
 
 /**
  * 객체 트리를 순회하며 콜백 실행

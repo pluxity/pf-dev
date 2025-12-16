@@ -1,5 +1,7 @@
-export { useModelTraverse, useMeshTraverse } from "./useModelTraverse.ts";
-export { useRaycast } from "./useRaycast.ts";
-export type { UseRaycastOptions, UseRaycastReturn } from "./useRaycast.ts";
-export { useMeshFinder, useMeshFinderAll } from "./useMeshFinder.ts";
-export type { MeshPredicate } from "./useMeshFinder.ts";
+export { useModelTraverse, useMeshTraverse } from "./useModelTraverse";
+export { useRaycast } from "./useRaycast";
+export type { UseRaycastOptions, UseRaycastReturn } from "./useRaycast";
+export { useMeshFinder, useMeshFinderAll } from "./useMeshFinder";
+export type { MeshPredicate } from "./useMeshFinder";
+export { useMeshHover } from "./useMeshHover";
+export { useAssetLoader } from "./useAssetLoader";

@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { useFBXLoader } from "../loaders/useFBXLoader.ts";
+import { useFBXLoader } from "../loaders/useFBXLoader";
 import type { Group } from "three";
 
 export interface FBXModelProps {

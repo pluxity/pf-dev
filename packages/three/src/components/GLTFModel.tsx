@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useGLTFLoader } from "../loaders/useGLTFLoader.ts";
+import { useGLTFLoader } from "../loaders/useGLTFLoader";
 import type { Group } from "three";
 import type { GLTF } from "three-stdlib";
 

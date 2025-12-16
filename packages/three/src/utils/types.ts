@@ -4,7 +4,7 @@ export type TraverseCallback = (object: Object3D) => void;
 export type MeshCallback = (mesh: Mesh) => void;
 export type MeshPredicate = (mesh: Mesh) => boolean;
 
-export interface MeshInfo {
+export interface MeshInfoData {
   name: string;
   vertices: number;
   triangles: number;

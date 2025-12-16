@@ -1,17 +1,12 @@
 import { create } from "zustand";
-import type { ModelState, ModelActions } from "../types/model.ts";
-
-// ============================================================================
-// Store
-// ============================================================================
+import type { ModelState, ModelActions } from "../types/model";
+import { disposeScene } from "../utils/dispose";
 
 export const useModelStore = create<ModelState & ModelActions>((set, get) => ({
-  // State
   models: new Map(),
 
-  // Actions
   addModel: (model) => {
-    const models = new Map(get().models); // 불변성
+    const models = new Map(get().models);
     models.set(model.id, { ...model, loadedAt: Date.now() });
     set({ models });
   },
@@ -59,14 +54,10 @@ export const useModelStore = create<ModelState & ModelActions>((set, get) => ({
   disposeModel: (id) => {
     const model = get().models.get(id);
     if (model) {
-      // Lazy import로 순환 참조 방지 (mapStore 패턴)
-      import("../utils/dispose.ts").then(({ disposeScene }) => {
-        disposeScene(model.object);
-      });
+      disposeScene(model.object);
       get().removeModel(id);
     }
   },
 }));
 
-// Alias for convenience
 export const modelStore = useModelStore;

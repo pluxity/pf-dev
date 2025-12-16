@@ -1,6 +1,11 @@
-export { useModelStore, modelStore } from "./modelStore.ts";
-export { useCameraStore, cameraStore } from "./cameraStore.ts";
+export { useFacilityStore, facilityStore } from "./facilityStore";
+export { useCameraStore, cameraStore } from "./cameraStore";
+export { useInteractionStore, interactionStore } from "./interactionStore";
+export { useAssetStore, assetStore } from "./assetStore";
+export { useFeatureStore, featureStore } from "./featureStore";
 
-// Re-export types
-export type { ModelState, ModelActions, ModelStore } from "../types/model.ts";
-export type { CameraState, CameraActions, CameraStore } from "../types/camera.ts";
+export type { FacilityState, FacilityActions, FacilityStore } from "../types/facility";
+export type { CameraState, CameraActions, CameraStore } from "../types/camera";
+export type { InteractionState, InteractionActions } from "../types/interaction";
+export type { AssetState, AssetActions, AssetStore } from "../types/feature";
+export type { FeatureState, FeatureActions, FeatureStore } from "../types/feature";

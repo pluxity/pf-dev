@@ -1,5 +1,5 @@
-export { useGLTFLoader } from "./useGLTFLoader.ts";
-export { useFBXLoader } from "./useFBXLoader.ts";
+export { useGLTFLoader } from "./useGLTFLoader";
+export { useFBXLoader } from "./useFBXLoader";
 
 // Re-export types
 export type {
@@ -10,4 +10,4 @@ export type {
   UseGLTFLoaderReturn,
   UseFBXLoaderOptions,
   UseFBXLoaderReturn,
-} from "../types/loader.ts";
+} from "../types/loader";
