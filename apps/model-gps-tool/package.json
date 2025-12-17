@@ -20,6 +20,7 @@
     "zustand": "catalog:",
     "react-hook-form": "catalog:",
     "zod": "catalog:",
+    "cesium": "^1.121.0",
     "@hookform/resolvers": "catalog:",
     "@pf-dev/api": "workspace:*",
     "@pf-dev/ui": "workspace:*",
@@ -36,6 +37,7 @@
     "tailwindcss": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "eslint": "catalog:",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "vite-plugin-cesium": "^1.2.23"
   }
 }

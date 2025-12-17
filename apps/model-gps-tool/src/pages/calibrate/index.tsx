@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Input, Button, useToast, Toaster } from "@pf-dev/ui";
-import { MapViewer, Terrain, Imagery } from "@pf-dev/map";
+import { Input, Button, useToast, Toaster, Slider } from "@pf-dev/ui";
+import { MapViewer, Terrain, Imagery, useFeatureStore, useCameraStore } from "@pf-dev/map";
+import { HeightReference } from "cesium";
 
 type InputFieldProps = {
   label: string;
+  slider?: boolean;
 };
 
 type SectionFieldProps = {
@@ -12,11 +14,18 @@ type SectionFieldProps = {
   showSearchButton?: boolean;
 };
 
-const InputFields = ({ label }: InputFieldProps) => {
+const InputFields = ({ label, slider }: InputFieldProps) => {
   return (
     <div className="flex items-center gap-2">
-      <strong className="w-40 text-sm">{label}</strong>
-      <Input inputSize="sm" type="number" />
+      <strong className="w-30 text-sm">{label}</strong>
+      {slider ? (
+        <div className="flex items-center justify-between gap-2">
+          <Slider className="w-40" />
+          <Input inputSize="sm" className="w-20" type="number" />
+        </div>
+      ) : (
+        <Input inputSize="sm" type="number" />
+      )}
     </div>
   );
 };
@@ -26,7 +35,7 @@ const SectionFields = ({ title, fields, showSearchButton }: SectionFieldProps) =
     <div className="space-y-3">
       <strong className="mb-3 block border-b border-gray-100 pb-2">{title}</strong>
       {fields.map((field, index) => (
-        <InputFields key={index} label={field.label} />
+        <InputFields key={index} label={field.label} slider={field.slider} />
       ))}
       {showSearchButton && (
         <Button variant="outline" size="sm" className="w-full cursor-pointer">
@@ -45,7 +54,11 @@ const SectionFieldsData: SectionFieldProps[] = [
   },
   {
     title: "Rotation",
-    fields: [{ label: "Heading" }, { label: "Pitch" }, { label: "Roll" }],
+    fields: [
+      { label: "Heading", slider: true },
+      { label: "Pitch", slider: true },
+      { label: "Roll", slider: true },
+    ],
   },
   {
     title: "Scale",
@@ -53,11 +66,25 @@ const SectionFieldsData: SectionFieldProps[] = [
   },
 ];
 
+const DEFAULT_POSITION = {
+  longitude: 126.970198,
+  latitude: 37.394399,
+  height: 1,
+};
+
 export function CalibratePage() {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toasts, toast, dismissToast } = useToast();
+  const { addFeature, removeFeature } = useFeatureStore();
+  const { flyTo } = useCameraStore();
+
+  const [featureId, setFeatureId] = useState<string | null>(null);
+
+  const ionToken = import.meta.env.VITE_ION_CESIUM_ACCESS_TOKEN;
+  const imageryAssetId = Number(import.meta.env.VITE_ION_CESIUM_MAP_ASSET_ID);
+  const terrainAssetId = Number(import.meta.env.VITE_ION_CESIUM_TERRAIN_ASSET_ID);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -65,6 +92,10 @@ export function CalibratePage() {
 
     if (fileUrl) {
       URL.revokeObjectURL(fileUrl);
+    }
+    if (featureId) {
+      removeFeature(featureId);
+      setFeatureId(null);
     }
 
     if (
@@ -74,6 +105,7 @@ export function CalibratePage() {
       const url = URL.createObjectURL(file);
       setFileUrl(url);
       setFileName(file.name);
+      setFeatureId(crypto.randomUUID());
       toast.success("파일이 업로드되었습니다.");
     } else {
       toast.error("파일 형식이 올바르지 않습니다. GLB 또는 GLTF 파일을 선택해주세요.");
@@ -88,24 +120,54 @@ export function CalibratePage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      toast.success("파일이 제거되었습니다.");
     }
+
+    if (featureId) {
+      removeFeature(featureId);
+      setFeatureId(null);
+    }
+
+    toast.success("파일이 제거되었습니다.");
   };
 
   useEffect(() => {
+    if (!fileUrl || !featureId) {
+      return;
+    }
+
+    const newFeature = addFeature(featureId, {
+      position: DEFAULT_POSITION,
+      visual: {
+        type: "model",
+        uri: fileUrl,
+        heightReference: HeightReference.RELATIVE_TO_GROUND,
+      },
+    });
+
+    if (newFeature) {
+      toast.success("모델이 성공적으로 추가되었습니다.");
+
+      flyTo({
+        longitude: DEFAULT_POSITION.longitude,
+        latitude: DEFAULT_POSITION.latitude,
+        height: DEFAULT_POSITION.height,
+      });
+    } else {
+      toast.error("모델을 추가할 수 없습니다.");
+      console.error("모델을 추가할 수 없습니다.");
+    }
+
     return () => {
-      if (fileUrl) {
-        URL.revokeObjectURL(fileUrl);
+      if (featureId) {
+        removeFeature(featureId);
       }
     };
-  }, [fileUrl]);
-
-  console.log("ION Token:", import.meta.env.VITE_ION_CESIUM_ACCESS_TOKEN);
+  }, [fileUrl, featureId, flyTo, removeFeature, addFeature, toast]);
 
   return (
     <div className="flex h-screen">
       <div className="w-96 border-r border-gray-200 bg-white p-4 overflow-y-auto">
-        <div className="mb-2 border-b-2 border-gray-200 pb-2">
+        <div className="mb-2 border-b-2 border-primary-200 pb-2">
           <strong>LOCATION EDITOR</strong>
         </div>
 
@@ -128,13 +190,6 @@ export function CalibratePage() {
                   <p className="text-xs text-green-700 font-medium truncate">{fileName}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    className="cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Change
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -179,12 +234,9 @@ export function CalibratePage() {
       </div>
 
       <div className="flex-1 relative">
-        <MapViewer
-          className="w-full h-screen"
-          ionToken={import.meta.env.VITE_ION_CESIUM_ACCESS_TOKEN}
-        >
-          <Imagery provider="ion" assetId={2} />
-          <Terrain provider="ion" assetId={4154236} />
+        <MapViewer className="w-full h-screen" ionToken={ionToken}>
+          <Imagery provider="ion" assetId={imageryAssetId} />
+          <Terrain provider="ion" assetId={terrainAssetId} />
         </MapViewer>
       </div>
 
