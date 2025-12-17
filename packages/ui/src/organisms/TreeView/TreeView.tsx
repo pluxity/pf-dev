@@ -5,7 +5,8 @@ import { cn } from "../../utils";
 
 export interface TreeNode {
   id: string;
-  label: string;
+  label?: string;
+  render?: React.ReactNode;
   icon?: React.ReactNode;
   children?: TreeNode[];
   disabled?: boolean;
@@ -100,10 +101,13 @@ const TreeNodeItem = ({
     return <File size="sm" className="text-[#808088]" />;
   };
 
+  const content = node.render ?? node.label;
+
   return (
     <div>
       <div
         role="treeitem"
+        aria-label={typeof node.label === "string" ? node.label : undefined}
         aria-selected={isSelected}
         aria-expanded={hasChildren ? isExpanded : undefined}
         tabIndex={node.disabled ? -1 : 0}
@@ -164,7 +168,7 @@ const TreeNodeItem = ({
 
         {showIcons && <span className="flex-shrink-0">{renderIcon()}</span>}
 
-        <span className={cn("truncate", isSelected && "font-medium")}>{node.label}</span>
+        <span className={cn("truncate", isSelected && "font-medium")}>{content}</span>
       </div>
 
       {hasChildren && isExpanded && (
