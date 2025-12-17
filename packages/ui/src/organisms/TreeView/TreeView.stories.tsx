@@ -1,8 +1,35 @@
 import type { StoryObj } from "@storybook/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TreeView, TreeNode } from "./TreeView";
 import { FileText, Image, Music, Video, Code } from "../../atoms/Icon";
 import { Badge } from "../../atoms/Badge";
+
+const StatusDot = ({ status }: { status: "active" | "warning" | "error" }) => {
+  const colors = {
+    active: "bg-green-500",
+    warning: "bg-yellow-500",
+    error: "bg-red-500",
+  };
+  return <span className={`inline-block h-2 w-2 rounded-full ${colors[status]}`} />;
+};
+
+const highlightText = (text: string, query: string) => {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200 font-medium">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+};
 
 const meta = {
   title: "Organisms/TreeView",
@@ -449,15 +476,6 @@ export const WithBadgesAndStatus: Story = {
   render: () => {
     const [selectedId, setSelectedId] = useState<string | undefined>();
 
-    const StatusDot = ({ status }: { status: "active" | "warning" | "error" }) => {
-      const colors = {
-        active: "bg-green-500",
-        warning: "bg-yellow-500",
-        error: "bg-red-500",
-      };
-      return <span className={`inline-block h-2 w-2 rounded-full ${colors[status]}`} />;
-    };
-
     const dataWithStatus: TreeNode[] = [
       {
         id: "servers",
@@ -534,60 +552,45 @@ export const WithSearchHighlight: Story = {
   render: () => {
     const [searchQuery, setSearchQuery] = useState("doc");
 
-    const highlightText = (text: string, query: string) => {
-      if (!query) return text;
-      const parts = text.split(new RegExp(`(${query})`, "gi"));
-      return (
-        <>
-          {parts.map((part, i) =>
-            part.toLowerCase() === query.toLowerCase() ? (
-              <mark key={i} className="bg-yellow-200 font-medium">
-                {part}
-              </mark>
-            ) : (
-              part
-            )
-          )}
-        </>
-      );
-    };
-
-    const searchData: TreeNode[] = [
-      {
-        id: "1",
-        label: "documents",
-        render: highlightText("documents", searchQuery),
-        children: [
-          {
-            id: "1-1",
-            label: "work documents",
-            render: highlightText("work documents", searchQuery),
-          },
-          {
-            id: "1-2",
-            label: "personal notes",
-            render: highlightText("personal notes", searchQuery),
-          },
-        ],
-      },
-      {
-        id: "2",
-        label: "downloads",
-        render: highlightText("downloads", searchQuery),
-      },
-      {
-        id: "3",
-        label: "projects",
-        render: highlightText("projects", searchQuery),
-        children: [
-          {
-            id: "3-1",
-            label: "documentation site",
-            render: highlightText("documentation site", searchQuery),
-          },
-        ],
-      },
-    ];
+    const searchData: TreeNode[] = useMemo(
+      () => [
+        {
+          id: "1",
+          label: "documents",
+          render: highlightText("documents", searchQuery),
+          children: [
+            {
+              id: "1-1",
+              label: "work documents",
+              render: highlightText("work documents", searchQuery),
+            },
+            {
+              id: "1-2",
+              label: "personal notes",
+              render: highlightText("personal notes", searchQuery),
+            },
+          ],
+        },
+        {
+          id: "2",
+          label: "downloads",
+          render: highlightText("downloads", searchQuery),
+        },
+        {
+          id: "3",
+          label: "projects",
+          render: highlightText("projects", searchQuery),
+          children: [
+            {
+              id: "3-1",
+              label: "documentation site",
+              render: highlightText("documentation site", searchQuery),
+            },
+          ],
+        },
+      ],
+      [searchQuery]
+    );
 
     return (
       <div style={{ width: 350 }}>

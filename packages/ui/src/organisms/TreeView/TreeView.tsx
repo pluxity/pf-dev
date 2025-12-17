@@ -101,6 +101,18 @@ const TreeNodeItem = ({
     return <File size="sm" className="text-[#808088]" />;
   };
 
+  if (process.env.NODE_ENV !== "production") {
+    if (node.render && typeof node.label !== "string") {
+      console.warn(
+        `[TreeView] Node with id "${node.id}" uses a \`render\` prop without a string \`label\`. This harms accessibility. Please provide a \`label\` for the \`aria-label\`.`
+      );
+    }
+    if (typeof node.label !== "string" && !node.render) {
+      console.warn(
+        `[TreeView] Node with id "${node.id}" has neither a \`label\` nor a \`render\` prop. It will be rendered as an empty node.`
+      );
+    }
+  }
   const content = node.render ?? node.label;
 
   return (
