@@ -1,26 +1,83 @@
 import { type Ref } from "react";
 import { cn } from "../../utils";
 
-export interface NavItemProps {
-  label: string;
-  href?: string;
-  active?: boolean;
-  onClick?: () => void;
-}
+// ============================================================================
+// Types
+// ============================================================================
 
 export interface NavigationBarProps extends React.HTMLAttributes<HTMLElement> {
+  /** Logo element (or use logoText for default) */
   logo?: React.ReactNode;
+  /** Logo text (used if logo not provided) */
   logoText?: string;
-  items?: NavItemProps[];
+  /** Children (composition pattern) */
+  children?: React.ReactNode;
+  /** Actions element (buttons, user menu, etc) */
   actions?: React.ReactNode;
   ref?: Ref<HTMLElement>;
 }
 
+export interface NavigationBarItemProps extends React.HTMLAttributes<HTMLAnchorElement> {
+  /** Item label */
+  children: React.ReactNode;
+  /** Link href */
+  href?: string;
+  /** Active state */
+  active?: boolean;
+  /** Click handler */
+  onClick?: () => void;
+}
+
+export interface NavigationBarLogoProps {
+  /** Logo content */
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface NavigationBarActionsProps {
+  /** Actions content */
+  children: React.ReactNode;
+  className?: string;
+}
+
+// ============================================================================
+// Components
+// ============================================================================
+
+// NavigationBar.Item
+function Item({ children, href, active, onClick, className, ...props }: NavigationBarItemProps) {
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "text-sm transition-colors",
+        active ? "font-bold text-brand" : "font-medium text-[#666673] hover:text-brand",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+}
+
+// NavigationBar.Logo
+function Logo({ children, className }: NavigationBarLogoProps) {
+  return <div className={cn("flex items-center", className)}>{children}</div>;
+}
+
+// NavigationBar.Actions
+function Actions({ children, className }: NavigationBarActionsProps) {
+  return <div className={cn("flex items-center gap-3", className)}>{children}</div>;
+}
+
+// Main component
 function NavigationBar({
   className,
   logo,
   logoText = "Logo",
-  items = [],
+  children,
   actions,
   ref,
   ...props
@@ -37,30 +94,17 @@ function NavigationBar({
       <div className="flex items-center gap-8">
         {logo || <span className="text-xl font-bold text-brand">{logoText}</span>}
 
-        {items.length > 0 && (
-          <div className="flex items-center gap-6">
-            {items.map((item, index) => (
-              <a
-                key={index}
-                href={item.href}
-                onClick={item.onClick}
-                className={cn(
-                  "text-sm transition-colors",
-                  item.active
-                    ? "font-bold text-brand"
-                    : "font-medium text-[#666673] hover:text-brand"
-                )}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        )}
+        {children && <div className="flex items-center gap-6">{children}</div>}
       </div>
 
       {actions && <div className="flex items-center gap-3">{actions}</div>}
     </nav>
   );
 }
+
+// Attach sub-components
+NavigationBar.Item = Item;
+NavigationBar.Logo = Logo;
+NavigationBar.Actions = Actions;
 
 export { NavigationBar };
