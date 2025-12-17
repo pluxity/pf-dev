@@ -1,2 +1,8 @@
-export { Sidebar, CollapsibleSidebar, SidebarSection, SidebarItem } from "./Sidebar";
-export type { SidebarProps, SidebarSectionProps, SidebarItemProps } from "./Sidebar";
+export { Sidebar, useSidebarContext } from "./Sidebar";
+export type {
+  SidebarProps,
+  SidebarItemProps,
+  SidebarSectionProps,
+  SidebarSeparatorProps,
+  SidebarCustomProps,
+} from "./Sidebar";
