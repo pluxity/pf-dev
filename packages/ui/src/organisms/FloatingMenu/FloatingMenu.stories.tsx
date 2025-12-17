@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FloatingMenu } from "./FloatingMenu";
-import { Home, Settings, Users, BarChart, Upload, Box, Layers } from "../../atoms/Icon";
+import { Home, Settings, Users, BarChart, Upload, Package, Layer } from "../../atoms/Icon";
 import { Badge } from "../../atoms/Badge";
-import { Slider } from "../../molecules/Slider";
+import { Slider } from "../../atoms/Slider";
 import { useState } from "react";
 
 const meta: Meta<typeof FloatingMenu> = {
@@ -138,7 +138,7 @@ export const WithSeparators: Story = {
 
       <FloatingMenu.Separator />
 
-      <FloatingMenu.Item icon={<Box size="sm" />}>Products</FloatingMenu.Item>
+      <FloatingMenu.Item icon={<Package size="sm" />}>Products</FloatingMenu.Item>
     </FloatingMenu>
   ),
 };
@@ -197,7 +197,7 @@ export const WithCustomContent: Story = {
       <FloatingMenu logo="3D Tools" defaultExpanded>
         <FloatingMenu.Group label="Model">
           <FloatingMenu.Item icon={<Upload size="sm" />}>Upload GLB</FloatingMenu.Item>
-          <FloatingMenu.Item icon={<Layers size="sm" />} active>
+          <FloatingMenu.Item icon={<Layer size="sm" />} active>
             Adjust Position
           </FloatingMenu.Item>
         </FloatingMenu.Group>
@@ -224,7 +224,7 @@ export const WithCustomContent: Story = {
 
         <FloatingMenu.Separator />
 
-        <FloatingMenu.Item icon={<Box size="sm" />}>Preview</FloatingMenu.Item>
+        <FloatingMenu.Item icon={<Package size="sm" />}>Preview</FloatingMenu.Item>
       </FloatingMenu>
     );
   },
@@ -255,13 +255,13 @@ export const ComplexExample: Story = {
               </Badge>
             </div>
           </FloatingMenu.Item>
-          <FloatingMenu.Item icon={<Box size="sm" />}>Export</FloatingMenu.Item>
+          <FloatingMenu.Item icon={<Package size="sm" />}>Export</FloatingMenu.Item>
         </FloatingMenu.Group>
 
         <FloatingMenu.Separator />
 
         <FloatingMenu.Group label="Settings">
-          <FloatingMenu.Item icon={<Layers size="sm" />} active>
+          <FloatingMenu.Item icon={<Layer size="sm" />} active>
             Layers
           </FloatingMenu.Item>
 
