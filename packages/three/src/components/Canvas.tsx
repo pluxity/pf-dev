@@ -2,9 +2,12 @@ import type { ReactNode, ComponentProps } from "react";
 import { Canvas as R3FCanvas } from "@react-three/fiber";
 import { Grid, OrbitControls } from "@react-three/drei";
 
+import { SceneLighting, type LightingPreset } from "./SceneLighting";
+
 type R3FCanvasProps = ComponentProps<typeof R3FCanvas>;
 
-export type LightingPreset = "default" | "studio" | "outdoor";
+// Re-export LightingPreset for convenience
+export type { LightingPreset };
 
 export interface SceneGridProps {
   size?: number;
@@ -63,7 +66,7 @@ export function Canvas({
   ) as R3FCanvasProps["camera"];
 
   return (
-    <R3FCanvas camera={cameraConfig} {...props}>
+    <R3FCanvas camera={cameraConfig} shadows {...props}>
       {/* 배경색 설정 */}
       {background && <color attach="background" args={[background]} />}
 
@@ -80,39 +83,6 @@ export function Canvas({
       {children}
     </R3FCanvas>
   );
-}
-
-/**
- * 내부 조명 컴포넌트
- */
-function SceneLighting({ preset }: { preset: LightingPreset }) {
-  switch (preset) {
-    case "studio":
-      return (
-        <>
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-          <directionalLight position={[-10, -10, -5]} intensity={0.5} />
-        </>
-      );
-
-    case "outdoor":
-      return (
-        <>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[10, 10, 5]} intensity={2} castShadow />
-        </>
-      );
-
-    case "default":
-    default:
-      return (
-        <>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
-        </>
-      );
-  }
 }
 
 /**
