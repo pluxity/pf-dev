@@ -58,10 +58,13 @@ export function Canvas({
     position: [10, 10, 10] as [number, number, number],
     fov: 75,
   };
+  // THREE.Camera 인스턴스가 전달되면 그대로 사용, 아니면 기본값과 병합
   const cameraConfig = (
-    camera
-      ? ({ ...defaultCamera, ...camera } as NonNullable<R3FCanvasProps["camera"]>)
-      : defaultCamera
+    camera && typeof camera === "object" && "isCamera" in camera
+      ? camera
+      : camera
+        ? { ...defaultCamera, ...camera }
+        : defaultCamera
   ) as R3FCanvasProps["camera"];
 
   return (
