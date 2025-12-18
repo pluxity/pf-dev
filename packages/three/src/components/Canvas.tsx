@@ -10,6 +10,7 @@ export interface SceneGridProps {
   size?: number;
   divisions?: number;
   color?: string;
+  sectionColor?: string;
 }
 
 export interface CanvasProps extends Omit<R3FCanvasProps, "children"> {
@@ -48,11 +49,16 @@ export function Canvas({
   // 그리드 props 파싱
   const gridProps: SceneGridProps | null = grid === false ? null : grid === true ? {} : grid;
 
-  // 기본 카메라 설정
-  const cameraConfig = camera || {
-    position: [10, 10, 10],
+  // 기본 카메라 설정 (사용자 설정과 병합)
+  const defaultCamera = {
+    position: [10, 10, 10] as [number, number, number],
     fov: 75,
   };
+  const cameraConfig = (
+    camera
+      ? ({ ...defaultCamera, ...camera } as NonNullable<R3FCanvasProps["camera"]>)
+      : defaultCamera
+  ) as R3FCanvasProps["camera"];
 
   return (
     <R3FCanvas camera={cameraConfig} {...props}>
@@ -107,7 +113,12 @@ function SceneLighting({ preset }: { preset: LightingPreset }) {
 /**
  * 내부 그리드 컴포넌트
  */
-function SceneGrid({ size = 100, divisions = 100, color = "#6b7280" }: SceneGridProps) {
+function SceneGrid({
+  size = 100,
+  divisions = 100,
+  color = "#6b7280",
+  sectionColor,
+}: SceneGridProps) {
   const cellSize = size / divisions;
 
   return (
@@ -118,7 +129,7 @@ function SceneGrid({ size = 100, divisions = 100, color = "#6b7280" }: SceneGrid
       cellColor={color}
       sectionSize={size / 10}
       sectionThickness={1.5}
-      sectionColor={color}
+      sectionColor={sectionColor ?? color}
       fadeDistance={400}
       fadeStrength={1}
       followCamera={false}
