@@ -1,4 +1,5 @@
 export {
+  Canvas,
   GLTFModel,
   FBXModel,
   CSS2DOverlay,
@@ -7,7 +8,14 @@ export {
   MeshInfoCompact,
   FeatureRenderer,
 } from "./components/index";
-export type { GLTFModelProps, FBXModelProps, MeshInfoProps } from "./components/index";
+export type {
+  CanvasProps,
+  LightingPreset,
+  SceneGridProps,
+  GLTFModelProps,
+  FBXModelProps,
+  MeshInfoProps,
+} from "./components/index";
 
 export {
   useFacilityStore,
