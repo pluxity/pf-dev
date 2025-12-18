@@ -310,6 +310,81 @@ function InteractiveScene() {
 }
 ```
 
+## 🏷️ Mesh UserData 활용
+
+Three.js의 모든 Mesh는 `userData` 속성을 제공합니다. 이를 통해 3D 모델에 사용자 정의 데이터를 저장하고 활용할 수 있습니다.
+
+### 기본 사용
+
+```tsx
+import { useGLTFLoader } from "@pf-dev/three";
+
+function MyScene() {
+  const { scene } = useGLTFLoader("/building.glb", {
+    onLoaded: (gltf) => {
+      gltf.scene.traverse((child) => {
+        // CCTV 메시에 센서 정보 저장
+        if (child.name.includes("CCTV")) {
+          child.userData = {
+            type: "sensor",
+            sensorId: child.name,
+            status: "active",
+          };
+        }
+
+        // 방 메시에 공간 정보 저장
+        if (child.name.includes("Room")) {
+          child.userData = {
+            type: "room",
+            roomNumber: child.name.match(/\d+/)?.[0],
+            capacity: 20,
+            occupied: false,
+          };
+        }
+      });
+    },
+  });
+
+  return scene ? <primitive object={scene} /> : null;
+}
+```
+
+### 활용 시나리오
+
+**건물 층 정보**:
+
+```typescript
+mesh.userData = {
+  floor: 3,
+  type: "office",
+  area: 500,
+  departments: ["IT", "HR"],
+};
+```
+
+**센서/IoT 장비 정보**:
+
+```typescript
+mesh.userData = {
+  type: "cctv",
+  id: "CCTV-F3-001",
+  status: "online",
+  streamUrl: "rtsp://...",
+};
+```
+
+**실내 공간 정보**:
+
+```typescript
+mesh.userData = {
+  type: "room",
+  roomId: "R-301",
+  capacity: 20,
+  occupied: true,
+  equipment: ["projector", "whiteboard"],
+};
+```
+
 ## 📚 API 참조
 
 ### Components
