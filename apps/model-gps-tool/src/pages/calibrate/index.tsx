@@ -19,7 +19,7 @@ const InputFields = ({ id: inputId, label, slider, value, onChange }: InputField
   };
   return (
     <div className="flex items-center gap-2">
-      <strong className="w-30 text-sm">{label}</strong>
+      <strong className="w-28 text-sm">{label}</strong>
       {slider ? (
         <div className="flex items-center justify-between gap-2">
           <Slider className="w-40" />
@@ -114,6 +114,11 @@ export function CalibratePage() {
 
   const [featureId, setFeatureId] = useState<string | null>(null);
   const [position, setPosition] = useState<Position>(DEFAULT_POSITION);
+  const positionRef = useRef<Position>(position);
+
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
 
   const ionToken = import.meta.env.VITE_ION_CESIUM_ACCESS_TOKEN;
   const imageryAssetId = Number(import.meta.env.VITE_ION_CESIUM_MAP_ASSET_ID);
@@ -122,14 +127,6 @@ export function CalibratePage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
     const file = event.target.files[0];
-
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
-    }
-    if (featureId) {
-      removeFeature(featureId);
-      setFeatureId(null);
-    }
 
     if (
       file &&
@@ -146,20 +143,14 @@ export function CalibratePage() {
   };
 
   const handleRemoveFile = () => {
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
-      setFileUrl(null);
-      setFileName("");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+    setFileUrl(null);
+    setFileName("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
 
-    if (featureId) {
-      removeFeature(featureId);
-      setFeatureId(null);
-    }
-
+    setFeatureId(null);
     toast.success("파일이 제거되었습니다.");
   };
 
@@ -180,8 +171,10 @@ export function CalibratePage() {
       return;
     }
 
+    const currentPosition = positionRef.current;
+
     const newFeature = addFeature(featureId, {
-      position: position,
+      position: currentPosition,
       visual: {
         type: "model",
         uri: fileUrl,
@@ -191,9 +184,9 @@ export function CalibratePage() {
 
     if (newFeature) {
       flyTo({
-        longitude: position.longitude,
-        latitude: position.latitude,
-        height: position.height,
+        longitude: currentPosition.longitude,
+        latitude: currentPosition.latitude,
+        height: currentPosition.height,
       });
     }
 
@@ -205,7 +198,7 @@ export function CalibratePage() {
         URL.revokeObjectURL(fileUrl);
       }
     };
-  }, [fileUrl, featureId, flyTo, removeFeature, addFeature, toast]);
+  }, [fileUrl, featureId, addFeature, removeFeature, flyTo]);
 
   const getSectionValues = (sectionId: string): Record<string, number> | undefined => {
     if (sectionId === "position") {
