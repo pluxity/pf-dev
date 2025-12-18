@@ -1,0 +1,1 @@
+export { CanvasTestPage } from "./CanvasTestPage";
