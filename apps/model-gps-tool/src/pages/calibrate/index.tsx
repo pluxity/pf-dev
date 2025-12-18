@@ -2,85 +2,118 @@ import { useState, useRef, useEffect } from "react";
 import { Input, Button, useToast, Toaster, Slider } from "@pf-dev/ui";
 import { MapViewer, Terrain, Imagery, useFeatureStore, useCameraStore } from "@pf-dev/map";
 import { HeightReference } from "cesium";
+import type { InputFieldProps, SectionFieldProps, Position } from "./types";
 
-type InputFieldProps = {
-  label: string;
-  slider?: boolean;
+const DEFAULT_POSITION: Position = {
+  longitude: 126.970198,
+  latitude: 37.394399,
+  height: 1,
 };
 
-type SectionFieldProps = {
-  title: string;
-  fields: InputFieldProps[];
-  showSearchButton?: boolean;
-};
-
-const InputFields = ({ label, slider }: InputFieldProps) => {
+const InputFields = ({ id: inputId, label, slider, value, onChange }: InputFieldProps) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = parseFloat(event.target.value);
+    if (!isNaN(inputValue)) {
+      onChange?.(inputValue);
+    }
+  };
   return (
     <div className="flex items-center gap-2">
       <strong className="w-30 text-sm">{label}</strong>
       {slider ? (
         <div className="flex items-center justify-between gap-2">
           <Slider className="w-40" />
-          <Input inputSize="sm" className="w-20" type="number" />
+          <Input
+            id={inputId}
+            inputSize="sm"
+            className="w-20"
+            type="number"
+            value={value}
+            onChange={handleInputChange}
+          />
         </div>
       ) : (
-        <Input inputSize="sm" type="number" />
+        <Input
+          id={inputId}
+          inputSize="sm"
+          type="number"
+          value={value}
+          onChange={handleInputChange}
+        />
       )}
     </div>
   );
 };
 
-const SectionFields = ({ title, fields, showSearchButton }: SectionFieldProps) => {
+const SectionFields = ({
+  id: sectionId,
+  title,
+  fields,
+  values,
+  onFieldsChange,
+}: SectionFieldProps) => {
+  const handleFieldChange = (fieldId: string, newValue: number) => {
+    if (!values) return;
+    const updatedValues = { ...values, [fieldId]: newValue };
+    onFieldsChange?.(sectionId, updatedValues);
+  };
   return (
     <div className="space-y-3">
       <strong className="mb-3 block border-b border-gray-100 pb-2">{title}</strong>
-      {fields.map((field, index) => (
-        <InputFields key={index} label={field.label} slider={field.slider} />
+      {fields.map((field) => (
+        <InputFields
+          key={field.id}
+          id={field.id}
+          label={field.label}
+          slider={field.slider}
+          value={values?.[field.id]}
+          onChange={(newValue) => handleFieldChange(field.id, newValue)}
+        />
       ))}
-      {showSearchButton && (
-        <Button variant="outline" size="sm" className="w-full cursor-pointer">
-          Search
-        </Button>
-      )}
     </div>
   );
 };
 
 const SectionFieldsData: SectionFieldProps[] = [
   {
+    id: "position",
     title: "Position",
-    fields: [{ label: "Longitude" }, { label: "Latitude" }, { label: "Height" }],
-    showSearchButton: true,
-  },
-  {
-    title: "Rotation",
     fields: [
-      { label: "Heading", slider: true },
-      { label: "Pitch", slider: true },
-      { label: "Roll", slider: true },
+      { id: "longitude", label: "Longitude" },
+      { id: "latitude", label: "Latitude" },
+      { id: "height", label: "Height" },
     ],
   },
   {
+    id: "rotation",
+    title: "Rotation",
+    fields: [
+      { id: "heading", label: "Heading", slider: true },
+      { id: "pitch", label: "Pitch", slider: true },
+      { id: "roll", label: "Roll", slider: true },
+    ],
+  },
+  {
+    id: "scale",
     title: "Scale",
-    fields: [{ label: "Scale X" }, { label: "Scale Y" }, { label: "Scale Z" }],
+    fields: [
+      { id: "scaleX", label: "Scale X" },
+      { id: "scaleY", label: "Scale Y" },
+      { id: "scaleZ", label: "Scale Z" },
+    ],
   },
 ];
-
-const DEFAULT_POSITION = {
-  longitude: 126.970198,
-  latitude: 37.394399,
-  height: 1,
-};
 
 export function CalibratePage() {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toasts, toast, dismissToast } = useToast();
-  const { addFeature, removeFeature } = useFeatureStore();
+  const { addFeature, removeFeature, updateFeature } = useFeatureStore();
   const { flyTo } = useCameraStore();
 
   const [featureId, setFeatureId] = useState<string | null>(null);
+  const [position, setPosition] = useState<Position>(DEFAULT_POSITION);
 
   const ionToken = import.meta.env.VITE_ION_CESIUM_ACCESS_TOKEN;
   const imageryAssetId = Number(import.meta.env.VITE_ION_CESIUM_MAP_ASSET_ID);
@@ -130,13 +163,25 @@ export function CalibratePage() {
     toast.success("파일이 제거되었습니다.");
   };
 
+  const handleFieldsChange = (sectionId: string, values: Record<string, number>) => {
+    if (sectionId === "position") {
+      setPosition(values as Position);
+      if (featureId) {
+        updateFeature(featureId, {
+          position: values as Position,
+        });
+      }
+    }
+    // rotation, scale은 나중에 구현
+  };
+
   useEffect(() => {
     if (!fileUrl || !featureId) {
       return;
     }
 
     const newFeature = addFeature(featureId, {
-      position: DEFAULT_POSITION,
+      position: position,
       visual: {
         type: "model",
         uri: fileUrl,
@@ -145,24 +190,34 @@ export function CalibratePage() {
     });
 
     if (newFeature) {
-      toast.success("모델이 성공적으로 추가되었습니다.");
-
       flyTo({
-        longitude: DEFAULT_POSITION.longitude,
-        latitude: DEFAULT_POSITION.latitude,
-        height: DEFAULT_POSITION.height,
+        longitude: position.longitude,
+        latitude: position.latitude,
+        height: position.height,
       });
-    } else {
-      toast.error("모델을 추가할 수 없습니다.");
-      console.error("모델을 추가할 수 없습니다.");
     }
 
     return () => {
       if (featureId) {
         removeFeature(featureId);
       }
+      if (fileUrl) {
+        URL.revokeObjectURL(fileUrl);
+      }
     };
   }, [fileUrl, featureId, flyTo, removeFeature, addFeature, toast]);
+
+  const getSectionValues = (sectionId: string): Record<string, number> | undefined => {
+    if (sectionId === "position") {
+      return {
+        longitude: position.longitude,
+        latitude: position.latitude,
+        height: position.height,
+      };
+    }
+    // rotation, scale은 나중에 구현
+    return undefined;
+  };
 
   return (
     <div className="flex h-screen">
@@ -214,12 +269,14 @@ export function CalibratePage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          {SectionFieldsData.map((section, index) => (
+          {SectionFieldsData.map((section) => (
             <SectionFields
-              key={index}
+              key={section.id}
+              id={section.id}
               title={section.title}
               fields={section.fields}
-              showSearchButton={section.showSearchButton}
+              values={getSectionValues(section.id)}
+              onFieldsChange={handleFieldsChange}
             />
           ))}
         </div>
