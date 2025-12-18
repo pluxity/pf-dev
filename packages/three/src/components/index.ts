@@ -1,3 +1,6 @@
+export { Canvas } from "./Canvas";
+export type { CanvasProps, LightingPreset, SceneGridProps } from "./Canvas";
+
 export { GLTFModel } from "./GLTFModel";
 export type { GLTFModelProps } from "./GLTFModel";
 
