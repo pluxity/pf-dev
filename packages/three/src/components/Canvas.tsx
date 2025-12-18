@@ -3,7 +3,7 @@ import { Canvas as R3FCanvas } from "@react-three/fiber";
 import { Grid } from "@react-three/drei";
 
 import { SceneLighting, type LightingPreset } from "./SceneLighting";
-import { CameraControls } from "./CameraControls";
+import { CameraControls, type CameraControlsProps } from "./CameraControls";
 
 type R3FCanvasProps = ComponentProps<typeof R3FCanvas>;
 
@@ -22,7 +22,7 @@ export interface CanvasProps extends Omit<R3FCanvasProps, "children"> {
   background?: string | null;
   lighting?: LightingPreset | false;
   grid?: boolean | SceneGridProps;
-  controls?: boolean;
+  controls?: boolean | CameraControlsProps;
 }
 
 /**
@@ -39,6 +39,11 @@ export interface CanvasProps extends Omit<R3FCanvasProps, "children"> {
  *
  * // 커스터마이징
  * <Canvas lighting="studio" grid background="#000">
+ *   <GLTFModel url="/model.glb" />
+ * </Canvas>
+ *
+ * // 카메라 컨트롤 커스터마이징
+ * <Canvas controls={{ minDistance: 5, maxDistance: 50, enablePan: false }}>
  *   <GLTFModel url="/model.glb" />
  * </Canvas>
  * ```
@@ -78,7 +83,7 @@ export function Canvas({
       {gridProps && <SceneGrid {...gridProps} />}
 
       {/* 카메라 컨트롤 */}
-      {controls && <CameraControls />}
+      {controls !== false && <CameraControls {...(typeof controls === "object" ? controls : {})} />}
 
       {/* 사용자 children */}
       {children}
