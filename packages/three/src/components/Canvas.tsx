@@ -1,6 +1,6 @@
 import type { ReactNode, ComponentProps } from "react";
 import { Canvas as R3FCanvas } from "@react-three/fiber";
-import { Grid } from "@react-three/drei";
+import { Grid, OrbitControls } from "@react-three/drei";
 
 type R3FCanvasProps = ComponentProps<typeof R3FCanvas>;
 
@@ -18,6 +18,7 @@ export interface CanvasProps extends Omit<R3FCanvasProps, "children"> {
   background?: string | null;
   lighting?: LightingPreset | false;
   grid?: boolean | SceneGridProps;
+  controls?: boolean;
 }
 
 /**
@@ -43,6 +44,7 @@ export function Canvas({
   background = "#1a1a1a",
   lighting = "default",
   grid = false,
+  controls = true,
   camera,
   ...props
 }: CanvasProps) {
@@ -70,6 +72,9 @@ export function Canvas({
 
       {/* 그리드 */}
       {gridProps && <SceneGrid {...gridProps} />}
+
+      {/* 카메라 컨트롤 */}
+      {controls && <OrbitControls makeDefault />}
 
       {/* 사용자 children */}
       {children}
