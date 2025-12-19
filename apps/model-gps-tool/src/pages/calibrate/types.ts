@@ -5,6 +5,8 @@ export type InputFieldProps = {
   value?: number;
   onChange?: (value: number) => void;
   step?: number;
+  min?: number;
+  max?: number;
 };
 
 export type SectionFieldProps = {

@@ -26,6 +26,26 @@ export function useModelDrag({ viewer, featureId, positionRef, setPosition }: Us
     let isDragging = false;
     let pickedEntity: Entity | null = null;
 
+    // 초기 상태 저장
+    const controller = viewer.scene.screenSpaceCameraController;
+    const originalEnableRotate = controller.enableRotate;
+    const originalEnableTranslate = controller.enableTranslate;
+    const originalEnableZoom = controller.enableZoom;
+    const originalCursor = viewer.canvas.style.cursor;
+
+    // 드래그 중 상태 저장
+    let savedEnableRotate: boolean | undefined;
+    let savedEnableTranslate: boolean | undefined;
+    let savedEnableZoom: boolean | undefined;
+    let savedCursor: string | undefined;
+
+    const restoreState = () => {
+      controller.enableRotate = savedEnableRotate ?? originalEnableRotate;
+      controller.enableTranslate = savedEnableTranslate ?? originalEnableTranslate;
+      controller.enableZoom = savedEnableZoom ?? originalEnableZoom;
+      viewer.canvas.style.cursor = savedCursor ?? originalCursor;
+    };
+
     // LEFT_DOWN 모델 선택
     handler.setInputAction((movement: ScreenSpaceEventHandler.PositionedEvent) => {
       const picked = viewer.scene.pick(movement.position);
@@ -33,8 +53,12 @@ export function useModelDrag({ viewer, featureId, positionRef, setPosition }: Us
         pickedEntity = picked.id;
         isDragging = true;
 
+        savedEnableRotate = controller.enableRotate;
+        savedEnableTranslate = controller.enableTranslate;
+        savedEnableZoom = controller.enableZoom;
+        savedCursor = viewer.canvas.style.cursor;
+
         // 드래그 중 카메라 이동 비활성화
-        const controller = viewer.scene.screenSpaceCameraController;
         controller.enableRotate = false;
         controller.enableTranslate = false;
         controller.enableZoom = false;
@@ -75,13 +99,7 @@ export function useModelDrag({ viewer, featureId, positionRef, setPosition }: Us
       if (isDragging) {
         isDragging = false;
         pickedEntity = null;
-
-        // 카메라 이동 다시 활성화
-        const controller = viewer.scene.screenSpaceCameraController;
-        controller.enableRotate = true;
-        controller.enableTranslate = true;
-        controller.enableZoom = true;
-        viewer.canvas.style.cursor = "default";
+        restoreState();
       }
     }, ScreenSpaceEventType.LEFT_UP);
 
@@ -90,11 +108,17 @@ export function useModelDrag({ viewer, featureId, positionRef, setPosition }: Us
         handler.destroy();
       }
       if (!viewer.isDestroyed()) {
-        const controller = viewer.scene.screenSpaceCameraController;
-        controller.enableRotate = true;
-        controller.enableTranslate = true;
-        controller.enableZoom = true;
-        viewer.canvas.style.cursor = "default";
+        if (isDragging && savedEnableRotate !== undefined) {
+          controller.enableRotate = savedEnableRotate ?? originalEnableRotate;
+          controller.enableTranslate = savedEnableTranslate ?? originalEnableTranslate;
+          controller.enableZoom = savedEnableZoom ?? originalEnableZoom;
+          viewer.canvas.style.cursor = savedCursor ?? originalCursor;
+        } else {
+          controller.enableRotate = originalEnableRotate;
+          controller.enableTranslate = originalEnableTranslate;
+          controller.enableZoom = originalEnableZoom;
+          viewer.canvas.style.cursor = originalCursor;
+        }
       }
     };
   }, [viewer, featureId, positionRef, setPosition]);

@@ -7,7 +7,6 @@ import {
   Transforms,
   Cartesian3,
   Math as CesiumMath,
-  ConstantProperty,
 } from "cesium";
 import type { InputFieldProps, SectionFieldProps, Position, Rotation, Scale } from "./types";
 import { useModelDrag } from "../../hooks";
@@ -28,7 +27,16 @@ const DEFAULT_SCALE: Scale = {
   scale: 1,
 };
 
-const InputFields = ({ id: inputId, label, slider, value, onChange, step }: InputFieldProps) => {
+const InputFields = ({
+  id: inputId,
+  label,
+  slider,
+  value,
+  onChange,
+  step,
+  min,
+  max,
+}: InputFieldProps) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = parseFloat(event.target.value);
     if (!isNaN(inputValue)) {
@@ -49,8 +57,8 @@ const InputFields = ({ id: inputId, label, slider, value, onChange, step }: Inpu
             className="w-40"
             value={[value ?? 0]}
             onValueChange={handleSliderChange}
-            min={0}
-            max={360}
+            min={min}
+            max={max}
             step={step ?? 0.1}
           />
           <Input
@@ -59,8 +67,8 @@ const InputFields = ({ id: inputId, label, slider, value, onChange, step }: Inpu
             className="w-20"
             type="number"
             value={value}
-            min={0}
-            max={360}
+            min={min}
+            max={max}
             onChange={handleInputChange}
             step={step}
           />
@@ -71,6 +79,8 @@ const InputFields = ({ id: inputId, label, slider, value, onChange, step }: Inpu
           inputSize="sm"
           type="number"
           value={value}
+          min={min}
+          max={max}
           onChange={handleInputChange}
           step={step}
         />
@@ -103,6 +113,8 @@ const SectionFields = ({
           value={values?.[field.id]}
           onChange={(newValue) => handleFieldChange(field.id, newValue)}
           step={field.step}
+          min={field.min}
+          max={field.max}
         />
       ))}
     </div>
@@ -123,9 +135,9 @@ const SectionFieldsData: SectionFieldProps[] = [
     id: "rotation",
     title: "Rotation",
     fields: [
-      { id: "heading", label: "Heading", slider: true, step: 0.1 },
-      { id: "pitch", label: "Pitch", slider: true, step: 0.1 },
-      { id: "roll", label: "Roll", slider: true, step: 0.1 },
+      { id: "heading", label: "Heading", slider: true, step: 0.1, min: 0, max: 360 },
+      { id: "pitch", label: "Pitch", slider: true, step: 0.1, min: 0, max: 360 },
+      { id: "roll", label: "Roll", slider: true, step: 0.1, min: 0, max: 360 },
     ],
   },
   {
@@ -144,7 +156,7 @@ export function CalibratePage() {
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toasts, toast, dismissToast } = useToast();
-  const { addFeature, removeFeature, updateFeature, getFeature } = useFeatureStore();
+  const { addFeature, removeFeature, updateFeature } = useFeatureStore();
   const viewer = useMapStore((state) => state.viewer);
 
   const [featureId, setFeatureId] = useState<string | null>(null);
@@ -227,10 +239,9 @@ export function CalibratePage() {
           headingPitchRoll
         );
 
-        const entity = getFeature(featureId);
-        if (entity) {
-          entity.orientation = new ConstantProperty(orientation);
-        }
+        updateFeature(featureId, {
+          orientation,
+        });
       }
     }
 
@@ -306,10 +317,6 @@ export function CalibratePage() {
     setScale(DEFAULT_SCALE);
 
     if (featureId) {
-      updateFeature(featureId, {
-        position: DEFAULT_POSITION,
-      });
-
       const headingPitchRoll = new HeadingPitchRoll(
         CesiumMath.toRadians(DEFAULT_ROTATION.heading),
         CesiumMath.toRadians(DEFAULT_ROTATION.pitch),
@@ -324,10 +331,10 @@ export function CalibratePage() {
         headingPitchRoll
       );
 
-      const entity = getFeature(featureId);
-      if (entity) {
-        entity.orientation = new ConstantProperty(orientation);
-      }
+      updateFeature(featureId, {
+        position: DEFAULT_POSITION,
+        orientation,
+      });
 
       if (fileUrl) {
         updateFeature(featureId, {
