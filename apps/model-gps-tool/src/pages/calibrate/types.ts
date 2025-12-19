@@ -20,3 +20,13 @@ export type Position = {
   latitude: number;
   height: number;
 };
+
+export type Rotation = {
+  heading: number;
+  pitch: number;
+  roll: number;
+};
+
+export type Scale = {
+  scale: number;
+};
