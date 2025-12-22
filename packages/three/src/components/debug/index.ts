@@ -1,4 +1,5 @@
 export { SceneGrid } from "./SceneGrid";
+export type { SceneGridProps } from "./SceneGrid";
 
 export { Stats } from "./Stats";
 export type { StatsProps } from "./Stats";

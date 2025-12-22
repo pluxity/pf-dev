@@ -3,7 +3,6 @@ export { Canvas, SceneLighting, CameraControls } from "./scene";
 export type {
   CanvasProps,
   LightingPreset,
-  SceneGridProps,
   SceneLightingProps,
   DirectionalLightConfig,
   CameraControlsProps,
@@ -15,7 +14,7 @@ export type { GLTFModelProps, FBXModelProps } from "./model";
 
 // Debug components
 export { SceneGrid, Stats, MeshOutline, MeshInfo, MeshInfoCompact } from "./debug";
-export type { StatsProps, MeshInfoProps } from "./debug";
+export type { StatsProps, MeshInfoProps, SceneGridProps } from "./debug";
 
 // Overlay components
 export { CSS2DOverlay } from "./overlay";

@@ -10,8 +10,7 @@ import {
   Material,
   Mesh,
 } from "three";
-import { useAssetStore } from "../../store";
-import { useFeatureStore } from "../../store";
+import { useAssetStore, useFeatureStore } from "../../store";
 import type { Feature } from "../../types";
 
 interface FeatureGroup {
