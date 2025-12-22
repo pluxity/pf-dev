@@ -6,12 +6,12 @@ function validateAsset(assetId: string, featureId: string): boolean {
   const asset = useAssetStore.getState().assets.get(assetId);
 
   if (!asset) {
-    console.warn(`[Feature] Asset "${assetId}" not found. Skipping feature "${featureId}".`);
+    console.warn(`[Feature] Asset not found. Skipping feature.`, { assetId, featureId });
     return false;
   }
 
   if (!asset.object) {
-    console.warn(`[Feature] Asset "${assetId}" not loaded yet. Skipping feature "${featureId}".`);
+    console.warn(`[Feature] Asset not loaded yet. Skipping feature.`, { assetId, featureId });
     return false;
   }
 
