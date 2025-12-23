@@ -17,8 +17,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "changeset": "changeset",
-    "version": "changeset version",
-    "release": "changeset tag"
+    "bump": "changeset version",
+    "tag": "changeset tag"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
