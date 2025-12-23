@@ -4,7 +4,13 @@
 
 `@pf-dev/three`만 설치하면 `@react-three/fiber`와 `@react-three/drei`를 별도로 설치하지 않아도 3D 앱을 개발할 수 있습니다.
 
-## ✨ v0.2.0 주요 기능
+## ✨ v0.3.0 주요 기능
+
+### 🚀 씬 초기화 (NEW)
+
+- ✅ **initializeScene** - Promise 기반 씬 초기화 API
+- ✅ **addAssets** - 여러 Asset 배치 등록 및 병렬 로드
+- ✅ **addFeatures** - 여러 Feature 배치 등록 (Asset 로드 상태 검증)
 
 ### 🎨 렌더링 컴포넌트
 
@@ -209,6 +215,51 @@ FPS 및 메모리 사용량을 모니터링하는 개발 도구입니다.
 </Canvas>
 ```
 
+## 🚀 initializeScene (v0.3.0)
+
+Promise 기반의 씬 초기화 API로 Asset, Feature, Facility 데이터 로드 순서를 보장합니다.
+
+### 기본 사용
+
+```tsx
+import { Canvas, GLTFModel, FeatureRenderer, initializeScene } from "@pf-dev/three";
+
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function init() {
+      await initializeScene({
+        assets: fetchAssets(), // Promise<Asset[]>
+        features: fetchFeatures(), // Promise<Feature[]>
+      });
+      setIsLoading(false);
+    }
+    init();
+  }, []);
+
+  return (
+    <Canvas>
+      <GLTFModel url="/building.glb" />
+      <FeatureRenderer />
+    </Canvas>
+  );
+}
+```
+
+### 초기화 순서
+
+1. **Assets 등록 + 병렬 로드** - `addAssets`로 여러 Asset을 한 번에 등록하고 로드 완료까지 대기
+2. **Features 등록** - Asset 로드 완료 후 Feature 등록 (Asset 존재 여부 검증)
+3. **Facility 등록** (선택) - 건물/시설 데이터 등록
+
+### 특징
+
+- ✅ Asset 로드 완료 후 Feature 등록 보장
+- ✅ 중복 Asset/Feature 자동 필터링
+- ✅ 잘못된 입력 타입 검증 및 경고
+- ✅ 로드 실패 시 경고 후 계속 진행
+
 ## 🎯 Feature Domain (대량 인스턴스 렌더링)
 
 동일한 3D 모델을 수천 개 인스턴스로 렌더링할 때 GPU Instancing을 사용하는 최적화된 아키텍처입니다.
@@ -220,40 +271,35 @@ FPS 및 메모리 사용량을 모니터링하는 개발 도구입니다.
 - **1:N 관계**: 하나의 Asset → 여러 Feature
 - **GPU Instancing**: 동일 Asset의 모든 Feature를 단일 Draw Call로 렌더링
 
-### 사용 예시
+### 사용 예시 (v0.3.0 권장)
 
 ```tsx
-import { Canvas, GLTFModel, FeatureRenderer, CameraControls } from "@pf-dev/three";
-import { useAssetStore, useFeatureStore, useAssetLoader } from "@pf-dev/three";
+import { Canvas, GLTFModel, FeatureRenderer, initializeScene } from "@pf-dev/three";
+
+// API에서 데이터 가져오기
+async function fetchAssets(): Promise<Asset[]> {
+  const response = await fetch("/api/assets");
+  return response.json();
+}
+
+async function fetchFeatures(): Promise<Feature[]> {
+  const response = await fetch("/api/features");
+  return response.json();
+}
 
 function App() {
-  const addAsset = useAssetStore((s) => s.addAsset);
-  const addFeatures = useFeatureStore((s) => s.addFeatures);
-  const assets = useAssetStore((s) => Array.from(s.assets.values()));
-
-  // Asset 로딩
-  useAssetLoader(assets);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Asset 등록
-    addAsset({
-      id: "cctv-box",
-      name: "CCTV Box Camera",
-      type: "gltf",
-      modelUrl: "/assets/features/CCTV_Box.glb",
-    });
-
-    // 2. Feature 추가 (수천 개 가능)
-    const cctvFeatures = Array.from({ length: 1000 }, (_, i) => ({
-      id: `cctv-${i}`,
-      assetId: "cctv-box",
-      position: [i * 5, 3, 0] as [number, number, number],
-      rotation: [0, 0, 0] as [number, number, number],
-      scale: 1,
-    }));
-
-    addFeatures(cctvFeatures);
-  }, [addAsset, addFeatures]);
+    async function init() {
+      await initializeScene({
+        assets: fetchAssets(),
+        features: fetchFeatures(),
+      });
+      setIsLoading(false);
+    }
+    init();
+  }, []);
 
   return (
     <Canvas lighting="studio" grid>
@@ -262,8 +308,6 @@ function App() {
 
       {/* Feature 인스턴스 렌더링 (GPU Instancing) */}
       <FeatureRenderer />
-
-      <CameraControls />
     </Canvas>
   );
 }
@@ -387,6 +431,13 @@ mesh.userData = {
 
 ## 📚 API 참조
 
+### Functions (v0.3.0)
+
+- `initializeScene(options)` - Promise 기반 씬 초기화 API
+  - `options.assets: Promise<Asset[]>` - Asset 데이터
+  - `options.features: Promise<Feature[]>` - Feature 데이터
+  - `options.facility?: Promise<Facility>` - Facility 데이터 (선택)
+
 ### Components
 
 - `<Canvas />` - WebGL 렌더러
@@ -404,7 +455,9 @@ mesh.userData = {
 
 - `useFacilityStore` - 건물/시설 상태 관리
 - `useAssetStore` - Asset 관리
+  - `addAssets(assets[])` - 배치 등록 + 병렬 로드 (v0.3.0)
 - `useFeatureStore` - Feature 관리
+  - `addFeatures(features[])` - 배치 등록 (Asset 검증 포함, v0.3.0)
 - `useCameraStore` - 카메라 상태 관리
 - `useInteractionStore` - 인터랙션 상태 관리
 

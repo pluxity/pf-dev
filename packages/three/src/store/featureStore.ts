@@ -1,5 +1,22 @@
 import { create } from "zustand";
 import type { FeatureState, FeatureActions, Feature } from "../types/feature";
+import { useAssetStore } from "./assetStore";
+
+function validateAsset(assetId: string, featureId: string): boolean {
+  const asset = useAssetStore.getState().assets.get(assetId);
+
+  if (!asset) {
+    console.warn(`[Feature] Asset not found. Skipping feature.`, { assetId, featureId });
+    return false;
+  }
+
+  if (!asset.object) {
+    console.warn(`[Feature] Asset not loaded yet. Skipping feature.`, { assetId, featureId });
+    return false;
+  }
+
+  return true;
+}
 
 export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) => ({
   features: new Map(),
@@ -8,6 +25,8 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   addFeature: (feature) => {
     const currentFeatures = get().features;
     if (currentFeatures.has(feature.id)) return;
+
+    if (!validateAsset(feature.assetId, feature.id)) return;
 
     const features = new Map(currentFeatures);
     const featuresByAsset = new Map(get().featuresByAsset);
@@ -23,14 +42,25 @@ export const useFeatureStore = create<FeatureState & FeatureActions>((set, get) 
   },
 
   addFeatures: (newFeatures) => {
+    if (!Array.isArray(newFeatures)) {
+      console.warn("[Feature] addFeatures received non-array input, skipping.", { newFeatures });
+      return;
+    }
+
+    const uniqueNewFeatures = newFeatures.filter(
+      (feature, index, self) => index === self.findIndex((f) => f.id === feature.id)
+    );
+
     const currentFeatures = get().features;
     const features = new Map(currentFeatures);
     const featuresByAsset = new Map(get().featuresByAsset);
 
     let hasChanges = false;
 
-    newFeatures.forEach((feature) => {
+    uniqueNewFeatures.forEach((feature) => {
       if (currentFeatures.has(feature.id)) return;
+
+      if (!validateAsset(feature.assetId, feature.id)) return;
 
       hasChanges = true;
       features.set(feature.id, feature);

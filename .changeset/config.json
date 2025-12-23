@@ -7,12 +7,7 @@
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@pf-dev/api",
-    "@pf-dev/eslint-config",
-    "@pf-dev/typescript-config",
-    "@pf-dev/model-gps-tool"
-  ],
+  "ignore": ["@pf-dev/model-gps-tool"],
   "privatePackages": {
     "version": true,
     "tag": true

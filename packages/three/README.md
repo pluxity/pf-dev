@@ -8,6 +8,7 @@
 
 - 🎨 **렌더링 컴포넌트**: Canvas, SceneLighting, CameraControls, SceneGrid, Stats
 - 🏗️ **모델 로딩**: GLTFModel, FBXModel
+- 🚀 **씬 초기화**: `initializeScene` Promise 기반 초기화 API
 - 🎯 **GPU Instancing**: Feature Domain으로 수천 개 인스턴스 최적 렌더링
 - 🎨 **메시 인터랙션**: Hover 감지, 아웃라인, 메시 정보
 - 💾 **상태 관리**: Zustand 기반 Facility/Asset/Feature Store
