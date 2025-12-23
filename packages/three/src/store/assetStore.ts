@@ -18,8 +18,17 @@ export const useAssetStore = create<AssetState & AssetActions>((set, get) => ({
   },
 
   addAssets: async (newAssets) => {
+    if (!Array.isArray(newAssets)) {
+      console.warn("[Asset] addAssets received non-array input, skipping.", { newAssets });
+      return;
+    }
+
+    const uniqueNewAssets = newAssets.filter(
+      (asset, index, self) => index === self.findIndex((a) => a.id === asset.id)
+    );
+
     const currentAssets = get().assets;
-    const assetsToLoad = newAssets.filter((asset) => !currentAssets.has(asset.id));
+    const assetsToLoad = uniqueNewAssets.filter((asset) => !currentAssets.has(asset.id));
 
     if (assetsToLoad.length === 0) return;
 
