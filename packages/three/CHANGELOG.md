@@ -1,5 +1,31 @@
 # @pf-dev/three
 
+## 0.3.0
+
+### Minor Changes
+
+- 9587d8a: feat: initializeScene 함수 추가
+  - Promise 기반 씬 초기화 API
+  - Asset/Feature/Facility 순서 보장 로직 캡슐화
+  - 앱 코드 단순화
+
+- 9587d8a: feat(assetStore): addAssets 배치 API 추가
+  - 여러 Asset을 한 번에 등록하고 로드 완료까지 대기
+  - Promise.all로 병렬 로드
+  - 로드 실패 시 console.warn + 계속 진행
+
+### Patch Changes
+
+- 9587d8a: feat(featureStore): Feature 등록 시 Asset 로드 상태 검증
+  - addFeature/addFeatures에 Asset 존재 및 로드 완료 검증 추가
+  - 검증 실패 시 console.warn + skip 처리
+
+- 9587d8a: refactor(components): 역할별 하위 폴더 구조화
+  - scene/: Canvas, SceneLighting, CameraControls
+  - model/: GLTFModel, FBXModel, FeatureRenderer
+  - debug/: MeshOutline, MeshInfo, SceneGrid, Stats
+  - overlay/: CSS2DOverlay
+
 ## 0.2.0
 
 ### Minor Changes
