@@ -61,9 +61,9 @@ export const Default: Story = {
     const [selected, setSelected] = useState<string[]>([]);
 
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <FilterBar selected={selected} onSelectedChange={setSelected} options={statusOptions}>
+      <FilterBar selected={selected} onSelectedChange={setSelected} options={statusOptions}>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
             <FilterBarTrigger>
               <FilterBarValue placeholder="Add filter..." />
               <FilterBarIcon />
@@ -78,11 +78,11 @@ export const Default: Story = {
                 ))}
               </FilterBarList>
             </FilterBarContent>
-          </FilterBar>
-          <FilterBarClear />
+            <FilterBarClear />
+          </div>
+          <FilterBarChips />
         </div>
-        <FilterBarChips />
-      </div>
+      </FilterBar>
     );
   },
 };
@@ -92,9 +92,9 @@ export const WithCategories: Story = {
     const [selected, setSelected] = useState<string[]>(["electronics"]);
 
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <FilterBar selected={selected} onSelectedChange={setSelected} options={categoryOptions}>
+      <FilterBar selected={selected} onSelectedChange={setSelected} options={categoryOptions}>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
             <FilterBarTrigger>
               <FilterBarValue />
               <FilterBarIcon />
@@ -107,11 +107,11 @@ export const WithCategories: Story = {
                 ))}
               </FilterBarList>
             </FilterBarContent>
-          </FilterBar>
-          <FilterBarClear />
+            <FilterBarClear />
+          </div>
+          <FilterBarChips showCategory />
         </div>
-        <FilterBarChips showCategory />
-      </div>
+      </FilterBar>
     );
   },
 };
@@ -139,9 +139,9 @@ export const WithSearch: Story = {
     const [selected, setSelected] = useState<string[]>([]);
 
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <FilterBar selected={selected} onSelectedChange={setSelected} options={mixedOptions}>
+      <FilterBar selected={selected} onSelectedChange={setSelected} options={mixedOptions}>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
             <FilterBarTrigger>
               <FilterBarValue />
               <FilterBarIcon />
@@ -150,11 +150,11 @@ export const WithSearch: Story = {
               <FilterBarInput />
               <FilterableList />
             </FilterBarContent>
-          </FilterBar>
-          <FilterBarClear />
+            <FilterBarClear />
+          </div>
+          <FilterBarChips showCategory />
         </div>
-        <FilterBarChips showCategory />
-      </div>
+      </FilterBar>
     );
   },
 };
@@ -164,9 +164,9 @@ export const PreSelected: Story = {
     const [selected, setSelected] = useState<string[]>(["active", "electronics", "high"]);
 
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
-          <FilterBar selected={selected} onSelectedChange={setSelected} options={mixedOptions}>
+      <FilterBar selected={selected} onSelectedChange={setSelected} options={mixedOptions}>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
             <FilterBarTrigger>
               <FilterBarValue />
               <FilterBarIcon />
@@ -175,11 +175,11 @@ export const PreSelected: Story = {
               <FilterBarInput />
               <FilterableList />
             </FilterBarContent>
-          </FilterBar>
-          <FilterBarClear />
+            <FilterBarClear />
+          </div>
+          <FilterBarChips showCategory />
         </div>
-        <FilterBarChips showCategory />
-      </div>
+      </FilterBar>
     );
   },
 };
@@ -215,13 +215,13 @@ export const Disabled: Story = {
     const [selected, setSelected] = useState<string[]>(["active"]);
 
     return (
-      <div className="flex flex-col gap-4">
-        <FilterBar
-          selected={selected}
-          onSelectedChange={setSelected}
-          options={statusOptions}
-          disabled
-        >
+      <FilterBar
+        selected={selected}
+        onSelectedChange={setSelected}
+        options={statusOptions}
+        disabled
+      >
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <FilterBarTrigger>
               <FilterBarValue />
@@ -229,9 +229,9 @@ export const Disabled: Story = {
             </FilterBarTrigger>
             <FilterBarClear />
           </div>
-          <FilterBarChips className="mt-2" />
-        </FilterBar>
-      </div>
+          <FilterBarChips />
+        </div>
+      </FilterBar>
     );
   },
 };
