@@ -84,7 +84,7 @@ function ComboBoxTrigger({ className, children, ref, ...props }: ComboBoxTrigger
       ref={ref}
       disabled={disabled}
       className={cn(
-        "flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm",
+        "flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm",
         "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "[&>span]:line-clamp-1",
@@ -284,10 +284,10 @@ function ComboBoxItemComponent<TValue>({
       data-disabled={disabled ? "" : undefined}
       data-selected={isSelected ? "" : undefined}
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-md py-2 pl-8 pr-2 text-sm outline-none",
+        "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2 text-sm outline-none",
         "hover:bg-gray-50 focus:bg-gray-50",
         isSelected && "bg-primary-50 text-primary-600",
-        disabled && "pointer-events-none opacity-50",
+        disabled && "cursor-not-allowed opacity-50",
         className
       )}
       onClick={handleSelect}
