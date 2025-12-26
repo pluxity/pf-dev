@@ -386,8 +386,12 @@ const state = useCameraStore.getState().getState();
 localStorage.setItem("viewpoint-1", JSON.stringify(state));
 
 // 복원
-const saved = JSON.parse(localStorage.getItem("viewpoint-1") || "null");
-if (saved) useCameraStore.getState().setState(saved);
+try {
+  const saved = JSON.parse(localStorage.getItem("viewpoint-1") || "null");
+  if (saved) useCameraStore.getState().setState(saved);
+} catch (e) {
+  console.error("카메라 상태 복원 중 오류 발생:", e);
+}
 ```
 
 ## 🏷️ Mesh UserData 활용

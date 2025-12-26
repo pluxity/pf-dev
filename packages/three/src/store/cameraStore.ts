@@ -7,6 +7,38 @@ import type {
 } from "../types/camera";
 import type { Camera } from "three";
 
+/** 현재 진행 중인 애니메이션 ID */
+let animationFrameId: number | null = null;
+
+/** 두 상태가 동일한지 비교 (부동소수점 오차 고려) */
+function isCameraStateEqual(
+  a: CameraState | null,
+  b: CameraState | null,
+  epsilon: number = 0.0001
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+
+  const arraysEqual = (arr1: number[], arr2: number[]): boolean => {
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+      if (Math.abs(arr1[i]! - arr2[i]!) >= epsilon) return false;
+    }
+    return true;
+  };
+
+  if (!arraysEqual(a.position, b.position)) return false;
+  if (!arraysEqual(a.rotation, b.rotation)) return false;
+
+  if (a.target && b.target) {
+    if (!arraysEqual(a.target, b.target)) return false;
+  } else if (a.target !== b.target) {
+    return false;
+  }
+
+  return true;
+}
+
 /** 카메라 상태를 실제 카메라에서 읽어오는 헬퍼 */
 function readCameraState(
   camera: Camera | null,
@@ -53,6 +85,12 @@ function animateCameraState(
   state: Partial<CameraState>,
   duration: number = 500
 ) {
+  // 진행 중인 애니메이션 취소
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+
   const startTime = performance.now();
   const startPosition = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
   const startTarget = controls
@@ -89,11 +127,13 @@ function animateCameraState(
     }
 
     if (progress < 1) {
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
+    } else {
+      animationFrameId = null;
     }
   }
 
-  requestAnimationFrame(animate);
+  animationFrameId = requestAnimationFrame(animate);
 }
 
 export const useCameraStore = create<CameraStoreState & CameraActions>((set, get) => ({
@@ -119,9 +159,6 @@ export const useCameraStore = create<CameraStoreState & CameraActions>((set, get
     } else {
       applyCameraState(_camera, _controls, state);
     }
-
-    // 상태 캐시 업데이트
-    get()._syncState();
   },
 
   updateConfig: (newConfig) => {
@@ -137,9 +174,13 @@ export const useCameraStore = create<CameraStoreState & CameraActions>((set, get
   },
 
   _syncState: () => {
-    const { _camera, _controls } = get();
-    const currentState = readCameraState(_camera, _controls);
-    set({ currentState });
+    const { _camera, _controls, currentState } = get();
+    const newState = readCameraState(_camera, _controls);
+
+    // 상태가 변경되었을 때만 업데이트 (불필요한 리렌더링 방지)
+    if (!isCameraStateEqual(currentState, newState)) {
+      set({ currentState: newState });
+    }
   },
 }));
 

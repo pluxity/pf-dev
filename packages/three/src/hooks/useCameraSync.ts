@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useCameraStore } from "../store/cameraStore";
 import type { OrbitControlsRef } from "../types/camera";
@@ -28,7 +28,6 @@ import type { OrbitControlsRef } from "../types/camera";
 export function useCameraSync(controlsRef?: React.RefObject<OrbitControlsRef | null>): void {
   const camera = useThree((state) => state.camera);
   const { _setCamera, _setControls, _syncState } = useCameraStore();
-  const isInitialized = useRef(false);
 
   // 카메라 참조 설정
   useEffect(() => {
@@ -50,14 +49,8 @@ export function useCameraSync(controlsRef?: React.RefObject<OrbitControlsRef | n
     };
   }, [controlsRef, _setControls]);
 
-  // 초기 상태 동기화 및 매 프레임 상태 업데이트
+  // 매 프레임마다 상태 동기화 (카메라가 외부에서 변경될 수 있음)
   useFrame(() => {
-    if (!isInitialized.current) {
-      _syncState();
-      isInitialized.current = true;
-    }
-
-    // 매 프레임마다 상태 동기화 (카메라가 외부에서 변경될 수 있음)
     _syncState();
   });
 }
