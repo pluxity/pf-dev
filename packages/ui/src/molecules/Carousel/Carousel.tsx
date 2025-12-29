@@ -137,14 +137,21 @@ function Carousel({
         };
       }
 
-      // slide transition
-      return {
-        transform: `translateX(${(index - activeIndex) * 100}%)`,
-        transition: `transform ${transitionDuration}ms ease-in-out`,
-      };
+      // slide transition - 개별 슬라이드는 스타일 없음 (container에서 처리)
+      return {};
     },
     [activeIndex, transition, transitionDuration]
   );
+
+  const getContainerStyle = useCallback(() => {
+    if (transition === "slide") {
+      return {
+        transform: `translateX(-${activeIndex * 100}%)`,
+        transition: `transform ${transitionDuration}ms ease-in-out`,
+      };
+    }
+    return {};
+  }, [activeIndex, transition, transitionDuration]);
 
   return (
     <CarouselContext.Provider value={contextValue}>
@@ -164,6 +171,7 @@ function Carousel({
             transition === "slide" && "flex",
             transition === "fade" && "relative"
           )}
+          style={getContainerStyle()}
         >
           {children.map((child, index) => (
             <div

@@ -33,7 +33,7 @@ export const Default: Story = {
   name: "기본",
   render: () => (
     <div className="h-[400px] p-4">
-      <GridLayout columns={3} gap={16}>
+      <GridLayout columns={3} gap={16} className="p-1">
         <Widget title="위젯 1" border>
           <div className="p-4">콘텐츠 1</div>
         </Widget>
@@ -58,7 +58,7 @@ export const Dashboard: Story = {
   name: "대시보드",
   render: () => (
     <div className="h-[600px] p-4 bg-gray-100">
-      <GridLayout columns={12} gap={16}>
+      <GridLayout columns={12} gap={16} className="p-1">
         <Widget title="매출 현황" border colSpan={6} rowSpan={2}>
           <div className="h-full flex items-center justify-center bg-blue-50">차트 영역</div>
         </Widget>
@@ -86,7 +86,7 @@ export const CCTVGrid: Story = {
   name: "CCTV 그리드 (4x4)",
   render: () => (
     <div className="h-[600px] p-4 bg-gray-900">
-      <GridLayout columns={4} rows={4} gap={8}>
+      <GridLayout columns={4} rows={4} gap={8} className="p-1">
         {Array.from({ length: 16 }, (_, i) => (
           <div key={i} className="bg-gray-800 rounded flex items-center justify-center text-white">
             CAM {i + 1}
@@ -105,6 +105,7 @@ export const CarouselPagination: Story = {
         columns={4}
         rows={4}
         gap={8}
+        className="p-1"
         pagination={{
           type: "carousel",
           perPage: 16,
@@ -139,7 +140,7 @@ export const TemplateMode: Story = {
   name: "템플릿 모드",
   render: () => (
     <div className="h-[600px] p-4 bg-gray-100">
-      <GridLayout template={dashboardTemplate} gap={16}>
+      <GridLayout template={dashboardTemplate} gap={16} className="p-1">
         <Widget id="widget-1" title="메인 차트" border>
           <div className="h-full flex items-center justify-center bg-blue-50">메인 차트 영역</div>
         </Widget>
@@ -164,7 +165,7 @@ export const TemplateModeEditable: Story = {
   name: "템플릿 모드 (편집 가능)",
   render: () => (
     <div className="h-[600px] p-4 bg-gray-100">
-      <GridLayout template={dashboardTemplate} gap={16} editable>
+      <GridLayout template={dashboardTemplate} gap={16} editable className="p-1">
         <Widget id="widget-1" title="메인 차트" border>
           <div className="h-full flex items-center justify-center bg-blue-50">
             드래그하여 위치 변경
@@ -193,8 +194,8 @@ export const DifferentGaps: Story = {
     <div className="space-y-8 p-4">
       <div>
         <h3 className="text-lg font-bold mb-2">gap: 8px</h3>
-        <div className="h-[200px] bg-gray-100">
-          <GridLayout columns={4} gap={8}>
+        <div className="h-[200px] bg-gray-100 p-1">
+          <GridLayout columns={4} gap={8} className="p-1">
             {Array.from({ length: 8 }, (_, i) => (
               <Widget key={i} border>
                 <div className="p-2 text-center">{i + 1}</div>
@@ -205,8 +206,8 @@ export const DifferentGaps: Story = {
       </div>
       <div>
         <h3 className="text-lg font-bold mb-2">gap: 16px</h3>
-        <div className="h-[200px] bg-gray-100">
-          <GridLayout columns={4} gap={16}>
+        <div className="h-[200px] bg-gray-100 p-1">
+          <GridLayout columns={4} gap={16} className="p-1">
             {Array.from({ length: 8 }, (_, i) => (
               <Widget key={i} border>
                 <div className="p-2 text-center">{i + 1}</div>
@@ -217,8 +218,8 @@ export const DifferentGaps: Story = {
       </div>
       <div>
         <h3 className="text-lg font-bold mb-2">gap: 24px</h3>
-        <div className="h-[200px] bg-gray-100">
-          <GridLayout columns={4} gap={24}>
+        <div className="h-[200px] bg-gray-100 p-1">
+          <GridLayout columns={4} gap={24} className="p-1">
             {Array.from({ length: 8 }, (_, i) => (
               <Widget key={i} border>
                 <div className="p-2 text-center">{i + 1}</div>
