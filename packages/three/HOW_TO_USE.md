@@ -527,6 +527,7 @@ mesh.userData = {
 - `useCameraStore` - 카메라 상태 관리 (v0.4.0 개선)
   - `getState()` - 현재 카메라 상태 조회 (실제 카메라에서 읽어옴)
   - `setState(state, animate?)` - 카메라 상태 설정 (실제 카메라 이동)
+  - `lookAtFeature(featureId, options?)` - 특정 Feature 바라보기 (v0.4.0)
   - `updateConfig(config)` - 카메라 설정 업데이트
 - `useInteractionStore` - 인터랙션 상태 관리
 
