@@ -29,11 +29,6 @@ export interface CarouselProps extends Omit<ComponentPropsWithoutRef<"div">, "on
   transitionDuration?: number;
 }
 
-export interface CarouselSlideProps extends ComponentPropsWithoutRef<"div"> {
-  /** 슬라이드가 현재 활성 상태인지 */
-  isActive?: boolean;
-}
-
 export interface CarouselContextValue {
   activeIndex: number;
   totalSlides: number;

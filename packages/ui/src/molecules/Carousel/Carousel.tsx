@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, type ComponentRef, type Ref } from "react";
 import { cn } from "../../utils";
-import type { CarouselProps, CarouselSlideProps, CarouselContextValue } from "./types";
+import type { CarouselProps, CarouselContextValue } from "./types";
 import { CarouselContext } from "./CarouselContext";
 
 interface CarouselRootProps extends CarouselProps {
@@ -78,13 +78,17 @@ function Carousel({
       if (!lazy) return true;
       if (index === activeIndex) return true;
       if (preloadAdjacent) {
-        const prevIndex = (activeIndex - 1 + totalSlides) % totalSlides;
-        const nextIndex = (activeIndex + 1) % totalSlides;
-        if (index === prevIndex || index === nextIndex) return true;
+        if (loop) {
+          const prevIndex = (activeIndex - 1 + totalSlides) % totalSlides;
+          const nextIndex = (activeIndex + 1) % totalSlides;
+          if (index === prevIndex || index === nextIndex) return true;
+        } else {
+          if (index === activeIndex - 1 || index === activeIndex + 1) return true;
+        }
       }
       return false;
     },
-    [lazy, activeIndex, preloadAdjacent, totalSlides]
+    [lazy, activeIndex, preloadAdjacent, totalSlides, loop]
   );
 
   const contextValue = useMemo<CarouselContextValue>(
@@ -241,12 +245,4 @@ function Carousel({
   );
 }
 
-function CarouselSlide({ children, isActive, className, ...props }: CarouselSlideProps) {
-  return (
-    <div className={cn("w-full h-full", className)} data-active={isActive} {...props}>
-      {children}
-    </div>
-  );
-}
-
-export { Carousel, CarouselSlide };
+export { Carousel };
