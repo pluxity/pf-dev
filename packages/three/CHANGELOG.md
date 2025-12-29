@@ -1,5 +1,168 @@
 # @pf-dev/three
 
+## 0.4.0
+
+### Minor Changes
+
+- c449dd1: ## Breaking Changes
+
+  ### CameraState 타입 개선
+
+  `CameraPosition` 타입이 `CameraState`로 변경되고, 구조가 개선되었습니다.
+
+  **변경사항:**
+  - `rotation` 필드 추가 (Euler angles)
+  - `target` 필드 optional로 변경
+  - 기존 스토어 상태 타입이 `CameraStoreState`로 변경
+
+  **마이그레이션 가이드:**
+
+  ```tsx
+  // Before
+  import type { CameraPosition } from "@pf-dev/three";
+  const camera: CameraPosition = {
+    position: [0, 0, 10],
+    target: [0, 0, 0],
+  };
+
+  // After
+  import type { CameraState } from "@pf-dev/three";
+  const camera: CameraState = {
+    position: [0, 0, 10],
+    rotation: [0, 0, 0],
+    target: [0, 0, 0], // optional
+  };
+  ```
+
+  **스토어 API 변경:**
+
+  ```tsx
+  // Before
+  useCameraStore.getState().setPosition({ position, target });
+  useCameraStore.getState().getPosition();
+
+  // After (권장)
+  useCameraStore.getState().setState({ position, rotation, target });
+  useCameraStore.getState().getState();
+
+  // 이전 API는 deprecated로 유지됨 (호환성)
+  ```
+
+- c449dd1: ## Breaking Changes
+
+  ### useCameraStore 개선 - 실제 카메라와 동기화
+
+  `useCameraStore`가 실제 Three.js 카메라와 동기화되도록 개선되었습니다.
+
+  **삭제된 기능:**
+  - `saveState(name)` - 앱 레벨에서 구현
+  - `restoreState(name)` - 앱 레벨에서 구현
+  - `clearState(name)` - 삭제
+  - `getAllSavedStates()` - 삭제
+  - `savedStates: Map` - 삭제
+
+  **새로운 API:**
+
+  ```tsx
+  // Canvas 내부에서 useCameraSync 훅 사용 필수
+  function Scene() {
+    const controlsRef = useRef<OrbitControls>(null);
+    useCameraSync(controlsRef);
+
+    return <OrbitControls ref={controlsRef} />;
+  }
+
+  // 카메라 상태 조회 (실제 카메라에서 읽어옴)
+  const state = useCameraStore.getState().getState();
+  // { position: [x, y, z], rotation: [x, y, z], target: [x, y, z] }
+
+  // 카메라 이동 (실제 카메라 이동)
+  useCameraStore.getState().setState({ position: [10, 5, 10] });
+
+  // 애니메이션 카메라 이동
+  useCameraStore.getState().setState({ position: [10, 5, 10] }, true);
+  ```
+
+  **마이그레이션 가이드:**
+
+  ```tsx
+  // Before - 저장/복원은 스토어에서 처리
+  useCameraStore.getState().saveState("viewpoint-1");
+  useCameraStore.getState().restoreState("viewpoint-1");
+
+  // After - 저장/복원은 앱 레벨에서 구현
+  const state = useCameraStore.getState().getState();
+  localStorage.setItem("viewpoint-1", JSON.stringify(state));
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("viewpoint-1") || "null");
+    if (saved) useCameraStore.getState().setState(saved);
+  } catch (e) {
+    console.error("카메라 상태 복원 중 오류 발생:", e);
+  }
+  ```
+
+- c449dd1: ## New Features
+
+  ### lookAtFeature 함수 추가
+
+  특정 Feature를 바라보도록 카메라를 이동하는 `lookAtFeature()` 함수가 추가되었습니다.
+
+  **API:**
+
+  ```tsx
+  useCameraStore.getState().lookAtFeature(featureId, options?);
+  ```
+
+  **Options:**
+  - `distance?: number` - Feature로부터의 거리 (기본값: 10)
+  - `animate?: boolean` - 애니메이션 여부 (기본값: true)
+  - `duration?: number` - 애니메이션 시간 ms (기본값: 500)
+
+  **사용 예시:**
+
+  ```tsx
+  // 기본 사용
+  useCameraStore.getState().lookAtFeature("cctv-001");
+
+  // 옵션 지정
+  useCameraStore.getState().lookAtFeature("sensor-001", {
+    distance: 15,
+    animate: true,
+    duration: 800,
+  });
+
+  // 즉시 이동 (애니메이션 없이)
+  useCameraStore.getState().lookAtFeature("light-001", { animate: false });
+  ```
+
+  **사용 사례:**
+  - 씬 실행 시 특정 CCTV/센서로 카메라 이동
+  - 시설물 선택 시 해당 위치로 포커스
+  - 가상순찰 시나리오에서 순차적 카메라 이동
+
+- c449dd1: ## Breaking Changes
+
+  ### CameraControls 컴포넌트 삭제
+
+  `CameraControls` 컴포넌트가 삭제되었습니다. `@react-three/drei`의 `OrbitControls`를 직접 사용하세요.
+
+  **마이그레이션 가이드:**
+
+  ```tsx
+  // Before
+  import { CameraControls } from "@pf-dev/three";
+  <CameraControls minDistance={5} maxDistance={50} />;
+
+  // After
+  import { OrbitControls } from "@react-three/drei";
+  <OrbitControls makeDefault minDistance={5} maxDistance={50} enableDamping />;
+  ```
+
+  **Canvas 컴포넌트 변경사항:**
+  - `controls` prop은 그대로 사용 가능 (내부적으로 OrbitControls 사용)
+  - `CameraControlsProps` 타입 대신 `OrbitControls`의 props 사용
+
 ## 0.3.0
 
 ### Minor Changes
