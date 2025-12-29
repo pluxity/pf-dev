@@ -1,14 +1,6 @@
-import { Fragment, type ReactNode, type Ref, type HTMLAttributes } from "react";
+import { Fragment } from "react";
 import { cn } from "../../utils";
-
-export interface CardListProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
-  data: T[];
-  renderCard: (item: T, index: number) => ReactNode;
-  keyExtractor?: (item: T, index: number) => string | number;
-  columns?: 2 | 3 | 4 | 5 | 6;
-  gap?: number;
-  ref?: Ref<HTMLDivElement>;
-}
+import type { CardListProps } from "./types";
 
 const columnClasses = {
   2: "grid-cols-2",

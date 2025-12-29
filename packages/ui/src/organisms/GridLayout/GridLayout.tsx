@@ -25,6 +25,14 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return chunks;
 }
 
+function createGridStyle(columns: number, rows: number | undefined, gap: number) {
+  return {
+    gridTemplateColumns: `repeat(${columns}, 1fr)`,
+    gridTemplateRows: rows ? `repeat(${rows}, 1fr)` : undefined,
+    gap: `${gap}px`,
+  };
+}
+
 const EMPTY_TEMPLATE: GridTemplate = {
   id: "",
   name: "",
@@ -74,12 +82,7 @@ export const GridLayout = forwardRef<HTMLDivElement, GridLayoutProps>(
       const childArray = Children.toArray(children);
       const perPage = pagination.perPage || columns * (rows || 1);
       const pages = chunkArray(childArray, perPage);
-
-      const gridStyle = {
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gridTemplateRows: rows ? `repeat(${rows}, 1fr)` : undefined,
-        gap: `${gap}px`,
-      };
+      const gridStyle = createGridStyle(columns, rows, gap);
 
       if (pagination.type === "carousel") {
         return (
@@ -117,11 +120,7 @@ export const GridLayout = forwardRef<HTMLDivElement, GridLayoutProps>(
             <div ref={ref} className={cn("h-full overflow-y-auto p-4", className)} {...props}>
               <div
                 className="grid h-full"
-                style={{
-                  gridTemplateColumns: `repeat(${template.columns}, 1fr)`,
-                  gridTemplateRows: `repeat(${template.rows}, 1fr)`,
-                  gap: `${gap}px`,
-                }}
+                style={createGridStyle(template.columns, template.rows, gap)}
               >
                 {children}
               </div>
@@ -133,14 +132,7 @@ export const GridLayout = forwardRef<HTMLDivElement, GridLayoutProps>(
 
     return (
       <div ref={ref} className={cn("h-full p-4", !rows && "overflow-y-auto", className)} {...props}>
-        <div
-          className={cn("grid", rows && "h-full")}
-          style={{
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gridTemplateRows: rows ? `repeat(${rows}, 1fr)` : undefined,
-            gap: `${gap}px`,
-          }}
-        >
+        <div className={cn("grid", rows && "h-full")} style={createGridStyle(columns, rows, gap)}>
           {children}
         </div>
       </div>
