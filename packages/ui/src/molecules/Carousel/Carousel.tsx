@@ -1,4 +1,13 @@
-import { useState, useEffect, useCallback, useMemo, type ComponentRef, type Ref } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Children,
+  type ComponentRef,
+  type Ref,
+  type KeyboardEvent,
+} from "react";
 import { cn } from "../../utils";
 import { ChevronLeft, ChevronRight } from "../../atoms/Icon";
 import type { CarouselProps, CarouselContextValue } from "./types";
@@ -29,7 +38,8 @@ function Carousel({
   const [internalIndex, setInternalIndex] = useState(0);
   const activeIndex = isControlled ? controlledIndex : internalIndex;
 
-  const totalSlides = children.length;
+  const slides = Children.toArray(children);
+  const totalSlides = slides.length;
 
   const setActiveIndex = useCallback(
     (index: number) => {
@@ -63,7 +73,7 @@ function Carousel({
   }, [activeIndex, goTo]);
 
   const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent) => {
+    (event: KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         goPrev();
@@ -171,7 +181,7 @@ function Carousel({
           )}
           style={getContainerStyle()}
         >
-          {children.map((child, index) => (
+          {slides.map((slide, index) => (
             <div
               key={index}
               className={cn(
@@ -181,7 +191,7 @@ function Carousel({
               style={getSlideStyle(index)}
               aria-hidden={index !== activeIndex}
             >
-              {shouldRenderSlide(index) ? child : null}
+              {shouldRenderSlide(index) ? slide : null}
             </div>
           ))}
         </div>
@@ -227,7 +237,7 @@ function Carousel({
         {/* Indicators */}
         {showIndicators && totalSlides > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-            {children.map((_, index) => (
+            {slides.map((_, index) => (
               <button
                 key={index}
                 type="button"
