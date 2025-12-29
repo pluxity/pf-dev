@@ -61,6 +61,19 @@ function Carousel({
     goTo(activeIndex - 1);
   }, [activeIndex, goTo]);
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        goPrev();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        goNext();
+      }
+    },
+    [goPrev, goNext]
+  );
+
   // Auto play
   useEffect(() => {
     if (!autoPlay || totalSlides <= 1) return;
@@ -135,7 +148,15 @@ function Carousel({
 
   return (
     <CarouselContext.Provider value={contextValue}>
-      <div ref={ref} className={cn("relative w-full overflow-hidden", className)} {...props}>
+      <div
+        ref={ref}
+        className={cn("relative w-full overflow-hidden", className)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="region"
+        aria-roledescription="carousel"
+        {...props}
+      >
         {/* Slides Container */}
         <div
           className={cn(

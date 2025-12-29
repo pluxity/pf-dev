@@ -211,7 +211,7 @@ export const LazyRendering: Story = {
   render: () => (
     <div className="w-[600px] h-[300px]">
       <Carousel lazy={true}>
-        {[0, 1, 2, 3].map((index) => (
+        {slides.map((_, index) => (
           <LazySlide key={index} index={index} />
         ))}
       </Carousel>
@@ -224,7 +224,7 @@ export const PreloadAdjacent: Story = {
   render: () => (
     <div className="w-[600px] h-[300px]">
       <Carousel lazy={true} preloadAdjacent={true}>
-        {[0, 1, 2, 3].map((index) => (
+        {slides.map((_, index) => (
           <LazySlide key={index} index={index} />
         ))}
       </Carousel>
