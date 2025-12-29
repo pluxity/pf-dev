@@ -14,9 +14,8 @@
 
 ### 🎨 렌더링 컴포넌트
 
-- ✅ **Canvas** - WebGL 렌더러와 기본 씬 설정 제공
+- ✅ **Canvas** - WebGL 렌더러와 기본 씬 설정 제공 (OrbitControls 내장)
 - ✅ **SceneLighting** - 조명 프리셋 시스템 (default/studio/outdoor)
-- ✅ **CameraControls** - 카메라 컨트롤 (OrbitControls 래핑)
 - ✅ **SceneGrid** - 바닥 그리드 헬퍼
 - ✅ **Stats** - FPS 및 메모리 모니터링
 
@@ -38,19 +37,18 @@
 ### 기본 사용
 
 ```tsx
-import { Canvas, GLTFModel, CameraControls } from "@pf-dev/three";
+import { Canvas, GLTFModel } from "@pf-dev/three";
 
 function App() {
   return (
     <Canvas lighting="default" grid>
       <GLTFModel url="/model.glb" castShadow receiveShadow />
-      <CameraControls />
     </Canvas>
   );
 }
 ```
 
-단 **5줄**로 3D 씬 완성!
+단 **4줄**로 3D 씬 완성! (Canvas에 OrbitControls 기본 포함)
 
 ### Before & After
 
@@ -75,16 +73,15 @@ function App() {
 }
 ```
 
-**After (v0.2.0)** - 간결한 코드:
+**After (v0.4.0)** - 간결한 코드:
 
 ```tsx
-import { Canvas, GLTFModel, CameraControls } from "@pf-dev/three";
+import { Canvas, GLTFModel } from "@pf-dev/three";
 
 function App() {
   return (
     <Canvas lighting="default" grid>
       <GLTFModel url="/model.glb" />
-      <CameraControls />
     </Canvas>
   );
 }
@@ -121,7 +118,7 @@ WebGL 렌더러와 기본 씬 설정을 제공하는 메인 컴포넌트입니�
 - `grid?: boolean | SceneGridProps` - 그리드 표시 (기본값: false)
 - `background?: string | null` - 배경색 (기본값: "#1a1a1a")
 - `camera?: { position?, fov? }` - 카메라 설정
-- `controls?: boolean | CameraControlsProps` - 카메라 컨트롤 (기본값: true)
+- `controls?: boolean | OrbitControlsProps` - 카메라 컨트롤 (기본값: true, OrbitControls 사용)
 
 ### SceneLighting
 
@@ -144,24 +141,6 @@ WebGL 렌더러와 기본 씬 설정을 제공하는 메인 컴포넌트입니�
 - `default` - 일반적인 실내 조명
 - `studio` - 스튜디오 조명 (다중 조명, 그림자)
 - `outdoor` - 야외 조명 (강한 directional, 그림자)
-
-### CameraControls
-
-OrbitControls를 래핑한 카메라 컨트롤 컴포넌트입니다.
-
-```tsx
-<CameraControls minDistance={5} maxDistance={50} enablePan={false} />
-```
-
-**Props:**
-
-- `enableDamping?: boolean` - 부드러운 움직임 (기본값: true)
-- `dampingFactor?: number` - 감쇠 계수 (기본값: 0.05)
-- `minDistance?: number` - 최소 거리 (기본값: 1)
-- `maxDistance?: number` - 최대 거리 (기본값: 500)
-- `enablePan?: boolean` - 패닝 활성화 (기본값: true)
-- `enableZoom?: boolean` - 줌 활성화 (기본값: true)
-- `enableRotate?: boolean` - 회전 활성화 (기본값: true)
 
 ### SceneGrid
 
@@ -354,6 +333,94 @@ function InteractiveScene() {
 }
 ```
 
+## 📷 카메라 상태 관리 (v0.4.0)
+
+실제 Three.js 카메라와 동기화된 상태 관리를 제공합니다.
+
+### 설정 (필수)
+
+Canvas 내부에서 `useCameraSync` 훅을 사용해야 합니다:
+
+```tsx
+import { useRef } from "react";
+import { Canvas, useCameraSync } from "@pf-dev/three";
+import { OrbitControls } from "@react-three/drei";
+
+function Scene() {
+  const controlsRef = useRef<OrbitControls>(null);
+  useCameraSync(controlsRef); // 카메라 스토어와 실제 카메라 동기화
+  return <OrbitControls ref={controlsRef} makeDefault />;
+}
+```
+
+### CameraState 타입
+
+```typescript
+interface CameraState {
+  position: [number, number, number]; // 카메라 위치
+  rotation: [number, number, number]; // 카메라 회전 (Euler angles)
+  target?: [number, number, number]; // OrbitControls 타겟 (optional)
+}
+```
+
+### 카메라 제어
+
+```tsx
+import { useCameraStore } from "@pf-dev/three";
+
+// 현재 카메라 상태 조회 (실제 카메라에서 읽어옴)
+const state = useCameraStore.getState().getState();
+
+// 카메라 즉시 이동
+useCameraStore.getState().setState({ position: [10, 5, 10], target: [0, 0, 0] });
+
+// 카메라 애니메이션 이동
+useCameraStore.getState().setState({ position: [20, 10, 20] }, true);
+```
+
+### Feature 바라보기 (lookAtFeature)
+
+특정 Feature를 바라보도록 카메라를 이동합니다:
+
+```tsx
+import { useCameraStore } from "@pf-dev/three";
+
+// 기본 사용 (애니메이션 이동, 거리 10)
+useCameraStore.getState().lookAtFeature("cctv-001");
+
+// 옵션 지정
+useCameraStore.getState().lookAtFeature("sensor-001", {
+  distance: 15, // Feature로부터의 거리 (기본값: 10)
+  animate: true, // 애니메이션 여부 (기본값: true)
+  duration: 800, // 애니메이션 시간 ms (기본값: 500)
+});
+
+// 즉시 이동 (애니메이션 없이)
+useCameraStore.getState().lookAtFeature("light-001", { animate: false });
+```
+
+**사용 사례:**
+
+- 씬 실행 시 특정 CCTV/센서로 카메라 이동
+- 시설물 선택 시 해당 위치로 포커스
+- 가상순찰 시나리오에서 순차적 카메라 이동
+
+### 상태 저장/복원 (앱 레벨 구현)
+
+```tsx
+// 저장
+const state = useCameraStore.getState().getState();
+localStorage.setItem("viewpoint-1", JSON.stringify(state));
+
+// 복원
+try {
+  const saved = JSON.parse(localStorage.getItem("viewpoint-1") || "null");
+  if (saved) useCameraStore.getState().setState(saved);
+} catch (e) {
+  console.error("카메라 상태 복원 중 오류 발생:", e);
+}
+```
+
 ## 🏷️ Mesh UserData 활용
 
 Three.js의 모든 Mesh는 `userData` 속성을 제공합니다. 이를 통해 3D 모델에 사용자 정의 데이터를 저장하고 활용할 수 있습니다.
@@ -442,7 +509,6 @@ mesh.userData = {
 
 - `<Canvas />` - WebGL 렌더러
 - `<SceneLighting />` - 조명 프리셋
-- `<CameraControls />` - 카메라 컨트롤
 - `<SceneGrid />` - 바닥 그리드
 - `<Stats />` - FPS 모니터
 - `<GLTFModel />` - GLTF/GLB 로더
@@ -458,12 +524,17 @@ mesh.userData = {
   - `addAssets(assets[])` - 배치 등록 + 병렬 로드 (v0.3.0)
 - `useFeatureStore` - Feature 관리
   - `addFeatures(features[])` - 배치 등록 (Asset 검증 포함, v0.3.0)
-- `useCameraStore` - 카메라 상태 관리
+- `useCameraStore` - 카메라 상태 관리 (v0.4.0 개선)
+  - `getState()` - 현재 카메라 상태 조회 (실제 카메라에서 읽어옴)
+  - `setState(state, animate?)` - 카메라 상태 설정 (실제 카메라 이동)
+  - `lookAtFeature(featureId, options?)` - 특정 Feature 바라보기 (v0.4.0)
+  - `updateConfig(config)` - 카메라 설정 업데이트
 - `useInteractionStore` - 인터랙션 상태 관리
 
 ### Hooks
 
 - `useAssetLoader(assets)` - Asset 로딩
+- `useCameraSync(controlsRef?)` - 카메라 스토어와 실제 카메라 동기화 (v0.4.0)
 - `useMeshHover(targets, options)` - Mesh 호버 감지
 - `useModelTraverse(object, callback)` - 모델 순회
 - `useRaycast(pointer, options)` - 레이캐스팅
