@@ -25,10 +25,26 @@ export type Position = {
 
 export type Rotation = {
   heading: number;
-  pitch: number;
-  roll: number;
 };
 
 export type Scale = {
   scale: number;
+};
+
+export type BoundingBoxInfo = {
+  south: number;
+  east: number;
+  north: number;
+  west: number;
+};
+
+export type GLTFJson = {
+  scenes?: Array<{ nodes?: number[] }>;
+  nodes?: Array<{
+    mesh?: number;
+    children?: number[];
+    scale?: number[];
+  }>;
+  meshes?: Array<{ primitives?: Array<{ attributes: { POSITION?: number } }> }>;
+  accessors?: Array<{ min?: number[]; max?: number[] }>;
 };
