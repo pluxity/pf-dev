@@ -12,27 +12,17 @@ pnpm add @pf-dev/services
 
 ### Auth
 
-인증 관련 훅, 컴포넌트, API를 제공합니다.
+인증 관련 타입을 제공합니다.
 
 ```typescript
-import { useAuth, useLogin, AuthProvider, ProtectedRouter } from "@pf-dev/services/auth";
+import type { User, AuthState, LoginCredentials, LoginResponse } from "@pf-dev/services/auth";
 ```
 
-#### 사용 예시
+## Roadmap
 
-```tsx
-import { AuthProvider, ProtectedRouter } from "@pf-dev/services/auth";
-
-function App() {
-  return (
-    <AuthProvider loginPath="/login">
-      <ProtectedRouter>
-        <Routes />
-      </ProtectedRouter>
-    </AuthProvider>
-  );
-}
-```
+- [ ] useAuth, useLogin, useLogout 훅 구현
+- [ ] AuthProvider 컴포넌트 구현
+- [ ] ProtectedRouter 컴포넌트 구현
 
 ## 개발
 
