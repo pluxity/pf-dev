@@ -42,7 +42,11 @@ export type BoundingBoxInfo = {
 
 export type GLTFJson = {
   scenes?: Array<{ nodes?: number[] }>;
-  nodes?: Array<{ mesh?: number; children?: number[] }>;
+  nodes?: Array<{
+    mesh?: number;
+    children?: number[];
+    scale?: number[];
+  }>;
   meshes?: Array<{ primitives?: Array<{ attributes: { POSITION?: number } }> }>;
   accessors?: Array<{ min?: number[]; max?: number[] }>;
 };

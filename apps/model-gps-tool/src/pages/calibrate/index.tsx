@@ -238,6 +238,33 @@ export function CalibratePage() {
     setPosition,
   });
 
+  const findModelPrimitive = useCallback(
+    (entityId: string): Model | null => {
+      if (!viewer || viewer.isDestroyed()) return null;
+
+      const entity = getFeature(entityId);
+      if (!entity?.model || !entity.position) return null;
+
+      const entityPosition = entity.position.getValue(viewer.clock.currentTime);
+      if (!entityPosition) return null;
+
+      for (let i = 0; i < viewer.scene.primitives.length; i++) {
+        const primitive = viewer.scene.primitives.get(i);
+        if (primitive instanceof Model && primitive.ready) {
+          const sphere = primitive.boundingSphere;
+          if (sphere && sphere.center && sphere.radius > 0) {
+            const distance = Cartesian3.distance(sphere.center, entityPosition);
+            if (distance < sphere.radius * 3) {
+              return primitive;
+            }
+          }
+        }
+      }
+      return null;
+    },
+    [viewer, getFeature]
+  );
+
   const parseGLTFBoundingBox = async (file: File) => {
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -262,42 +289,70 @@ export function CalibratePage() {
       gltfJson = JSON.parse(new TextDecoder().decode(uint8Array)) as GLTFJson;
     }
 
-    if (!gltfJson?.scenes?.[0]?.nodes || !gltfJson.nodes || !gltfJson.meshes || !gltfJson.accessors)
-      return null;
+    if (!gltfJson?.meshes || !gltfJson.accessors) return null;
 
     let minX = Infinity,
       maxX = -Infinity;
     let minZ = Infinity,
       maxZ = -Infinity;
 
-    const traverseNode = (nodeIndex: number) => {
+    const processNode = (nodeIndex: number, parentScale: [number, number, number]) => {
       const node = gltfJson.nodes?.[nodeIndex];
       if (!node) return;
 
+      const nodeScale = node.scale || [1, 1, 1];
+      const currentScale: [number, number, number] = [
+        (parentScale[0] ?? 1) * (nodeScale[0] ?? 1),
+        (parentScale[1] ?? 1) * (nodeScale[1] ?? 1),
+        (parentScale[2] ?? 1) * (nodeScale[2] ?? 1),
+      ];
+
       if (node.mesh !== undefined) {
         const mesh = gltfJson.meshes?.[node.mesh];
-        if (mesh) {
-          mesh.primitives?.forEach((primitive) => {
-            const accessor = gltfJson.accessors?.[primitive.attributes.POSITION ?? -1];
-            if (
-              accessor?.min &&
-              accessor?.max &&
-              accessor.min.length >= 3 &&
-              accessor.max.length >= 3
-            ) {
-              minX = Math.min(minX, accessor.min[0] ?? Infinity);
-              maxX = Math.max(maxX, accessor.max[0] ?? -Infinity);
-              minZ = Math.min(minZ, accessor.min[2] ?? Infinity);
-              maxZ = Math.max(maxZ, accessor.max[2] ?? -Infinity);
-            }
-          });
-        }
+        mesh?.primitives?.forEach((primitive) => {
+          const accessor = gltfJson.accessors?.[primitive.attributes.POSITION ?? -1];
+          if (
+            accessor?.min &&
+            accessor?.max &&
+            accessor.min.length >= 3 &&
+            accessor.max.length >= 3
+          ) {
+            const scaledMinX = (accessor.min[0] ?? 0) * currentScale[0];
+            const scaledMaxX = (accessor.max[0] ?? 0) * currentScale[0];
+            const scaledMinZ = (accessor.min[2] ?? 0) * currentScale[2];
+            const scaledMaxZ = (accessor.max[2] ?? 0) * currentScale[2];
+
+            minX = Math.min(minX, scaledMinX, scaledMaxX);
+            maxX = Math.max(maxX, scaledMinX, scaledMaxX);
+            minZ = Math.min(minZ, scaledMinZ, scaledMaxZ);
+            maxZ = Math.max(maxZ, scaledMinZ, scaledMaxZ);
+          }
+        });
       }
 
-      node.children?.forEach(traverseNode);
+      node.children?.forEach((childIndex) => processNode(childIndex, currentScale));
     };
 
-    gltfJson.scenes[0].nodes?.forEach(traverseNode);
+    if (gltfJson.scenes?.[0]?.nodes && gltfJson.nodes) {
+      gltfJson.scenes[0].nodes.forEach((nodeIndex) => processNode(nodeIndex, [1, 1, 1]));
+    } else {
+      gltfJson.meshes.forEach((mesh) => {
+        mesh.primitives?.forEach((primitive) => {
+          const accessor = gltfJson.accessors?.[primitive.attributes.POSITION ?? -1];
+          if (
+            accessor?.min &&
+            accessor?.max &&
+            accessor.min.length >= 3 &&
+            accessor.max.length >= 3
+          ) {
+            minX = Math.min(minX, accessor.min[0] ?? Infinity);
+            maxX = Math.max(maxX, accessor.max[0] ?? -Infinity);
+            minZ = Math.min(minZ, accessor.min[2] ?? Infinity);
+            maxZ = Math.max(maxZ, accessor.max[2] ?? -Infinity);
+          }
+        });
+      });
+    }
 
     if (minX === Infinity || minZ === Infinity) return null;
     return { width: maxX - minX, depth: maxZ - minZ };
@@ -384,6 +439,15 @@ export function CalibratePage() {
         updateFeature(featureId, {
           orientation,
         });
+
+        if (showBoundingBox) {
+          setTimeout(() => {
+            const info = updateBoundingBoxVisual();
+            if (info) {
+              setBoundingBoxInfo(info);
+            }
+          }, 100);
+        }
       }
     }
 
@@ -399,6 +463,15 @@ export function CalibratePage() {
             heightReference: HeightReference.RELATIVE_TO_GROUND,
           },
         });
+      }
+
+      if (showBoundingBox && featureId) {
+        setTimeout(() => {
+          const info = updateBoundingBoxVisual();
+          if (info) {
+            setBoundingBoxInfo(info);
+          }
+        }, 100);
       }
     }
   };
@@ -500,45 +573,39 @@ export function CalibratePage() {
     const entity = getFeature(featureId);
     if (!entity?.position) return null;
 
-    let centerPosition = entity.position.getValue(viewer.clock.currentTime);
-    let scaleRatio = 1;
+    // 모델의 실제 중심점 찾기
+    let modelCenter: Cartesian3 | null = null;
 
     if (entity.model) {
-      const modelScale = entity.model.scale?.getValue(viewer.clock.currentTime) ?? 1;
-      for (let i = 0; i < viewer.scene.primitives.length; i++) {
-        const primitive = viewer.scene.primitives.get(i);
-        if (primitive instanceof Model && primitive.ready) {
-          const boundingSphere = primitive.boundingSphere;
-          if (boundingSphere && boundingSphere.radius > 0 && boundingSphere.center) {
-            centerPosition = boundingSphere.center;
-
-            const actualRadius = boundingSphere.radius / modelScale;
-            const parsedDiagonal = Math.sqrt(parsedBBox.width ** 2 + parsedBBox.depth ** 2);
-            if (parsedDiagonal > 0 && actualRadius > 0) {
-              // 지름 (반지름 × 2) / 파싱한 대각선 길이
-              scaleRatio = (actualRadius * 2) / parsedDiagonal;
-            }
-            break;
-          }
+      const modelPrimitive = findModelPrimitive(featureId);
+      if (modelPrimitive && modelPrimitive.boundingSphere) {
+        const boundingSphere = modelPrimitive.boundingSphere;
+        if (boundingSphere.radius > 0 && boundingSphere.center) {
+          modelCenter = boundingSphere.center;
         }
       }
     }
 
-    if (!centerPosition) return null;
+    if (!modelCenter) {
+      const tempCenter = entity.position.getValue(viewer.clock.currentTime);
+      if (!tempCenter) return null;
+      modelCenter = tempCenter;
+    }
 
-    const carto = Cartographic.fromCartesian(centerPosition);
+    const carto = Cartographic.fromCartesian(modelCenter);
     const lon = CesiumMath.toDegrees(carto.longitude);
     const lat = CesiumMath.toDegrees(carto.latitude);
     const height = carto.height;
 
-    const width = parsedBBox.width * scale.scale * scaleRatio;
-    const depth = parsedBBox.depth * scale.scale * scaleRatio;
+    const actualWidth = parsedBBox.width * scale.scale;
+    const actualDepth = parsedBBox.depth * scale.scale;
 
     const metersPerLat = 111320;
     const metersPerLon = metersPerLat * Math.cos(CesiumMath.toRadians(lat));
 
-    const halfLat = width / 2 / metersPerLat; // X축 → 위도
-    const halfLon = depth / 2 / metersPerLon; // Z축 → 경도
+    // X축(width) → 위도, Z축(depth) → 경도
+    const halfLat = actualWidth / 2 / metersPerLat;
+    const halfLon = actualDepth / 2 / metersPerLon;
 
     const headingRadians = CesiumMath.toRadians(-rotation.heading);
     const cos = Math.cos(headingRadians);
@@ -557,7 +624,7 @@ export function CalibratePage() {
       { x: -halfLon, y: halfLat }, // 왼쪽 아래
     ];
 
-    // 회전된 모서리 좌표를 3D Cartesian 좌표로 변환 = 지리좌표 -> 3D Cartesian 좌표 변환
+    // 회전된 모서리 좌표를 3D Cartesian 좌표로 변환
     const corners = local.map((p) => {
       const r = rotate(p.x, p.y);
       return Cartesian3.fromDegrees(lon + r.x, lat + r.y, height);
@@ -613,13 +680,14 @@ export function CalibratePage() {
     featureId,
     parsedBBox,
     showBoundingBox,
-    scale,
+    scale.scale,
     rotation.heading,
     position,
     getFeature,
     addFeature,
     updateFeature,
     hasFeature,
+    findModelPrimitive,
   ]);
 
   const handleToggleBoundingBox = () => {
@@ -645,7 +713,14 @@ export function CalibratePage() {
         setBoundingBoxInfo(boundingBoxInfo);
       }
     }
-  }, [showBoundingBox, featureId, updateBoundingBoxVisual]);
+  }, [
+    showBoundingBox,
+    featureId,
+    scale.scale,
+    rotation.heading,
+    position,
+    updateBoundingBoxVisual,
+  ]);
 
   return (
     <div className="flex h-screen">
