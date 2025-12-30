@@ -8,11 +8,7 @@ import {
   Cartesian3,
   Math as CesiumMath,
   Cartographic,
-  Color,
-  ColorMaterialProperty,
   Model,
-  PolygonGraphics,
-  PolygonHierarchy,
 } from "cesium";
 import type {
   InputFieldProps,
@@ -90,6 +86,7 @@ const InputFields = ({
             max={max}
             onChange={handleInputChange}
             step={step}
+            readOnly={true}
           />
         </div>
       ) : (
@@ -170,8 +167,7 @@ export function CalibratePage() {
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toasts, toast, dismissToast } = useToast();
-  const { addFeature, removeFeature, updateFeature, getFeature, hasFeature, setVisibility } =
-    useFeatureStore();
+  const { addFeature, removeFeature, updateFeature, getFeature } = useFeatureStore();
   const viewer = useMapStore((state) => state.viewer);
 
   const [featureId, setFeatureId] = useState<string | null>(null);
@@ -185,13 +181,13 @@ export function CalibratePage() {
   const [topView, setTopView] = useState<boolean>(false);
   const [showBoundingBox, setShowBoundingBox] = useState<boolean>(false);
   const [boundingBoxInfo, setBoundingBoxInfo] = useState<BoundingBoxInfo | null>(null);
-  const boundingBoxFeatureIdRef = useRef<string | null>(null);
 
   const handleToggleTopView = () => {
     if (!viewer || viewer.isDestroyed()) return;
 
     const newTopViewState = !topView;
     const cartographic = viewer.camera.positionCartographic;
+    const controller = viewer.scene.screenSpaceCameraController;
     setTopView(newTopViewState);
 
     const currentState = cameraPosition || {
@@ -202,14 +198,18 @@ export function CalibratePage() {
     };
 
     if (newTopViewState) {
+      controller.enableTilt = false;
+
       flyTo({
         longitude: currentState.longitude,
         latitude: currentState.latitude,
         height: Math.max(currentState.height, 1000),
-        heading: currentState.heading,
+        heading: 0,
         pitch: -90,
       });
     } else {
+      controller.enableTilt = true;
+
       flyTo({
         longitude: currentState.longitude,
         latitude: currentState.latitude,
@@ -258,9 +258,8 @@ export function CalibratePage() {
     [viewer, getFeature]
   );
 
-  const updateBoundingBoxVisual = useCallback((): BoundingBoxInfo | null => {
-    if (!viewer || viewer.isDestroyed() || !featureId || !parsedBBox || !showBoundingBox)
-      return null;
+  const calculateBoundingBoxInfo = useCallback((): BoundingBoxInfo | null => {
+    if (!viewer || viewer.isDestroyed() || !featureId || !parsedBBox) return null;
 
     const entity = getFeature(featureId);
     if (!entity?.position) return null;
@@ -330,52 +329,14 @@ export function CalibratePage() {
       west: Math.min(...lons),
     };
 
-    const boundingBoxFeatureId = boundingBoxFeatureIdRef.current ?? `bbox-${featureId}`;
-    boundingBoxFeatureIdRef.current = boundingBoxFeatureId;
-
-    if (hasFeature(boundingBoxFeatureId)) {
-      const entity = getFeature(boundingBoxFeatureId);
-      if (entity) {
-        updateFeature(boundingBoxFeatureId, {
-          position: { longitude: lon, latitude: lat, height },
-        });
-        entity.polygon = new PolygonGraphics({
-          hierarchy: new PolygonHierarchy(corners),
-          material: new ColorMaterialProperty(Color.fromCssColorString("#00ff0080")),
-          fill: true,
-          outline: false,
-          show: true,
-        });
-      }
-    } else {
-      const entity = addFeature(boundingBoxFeatureId, {
-        position: { longitude: lon, latitude: lat, height },
-      });
-
-      if (entity) {
-        entity.polygon = new PolygonGraphics({
-          hierarchy: new PolygonHierarchy(corners),
-          material: new ColorMaterialProperty(Color.fromCssColorString("#00ff0080")),
-          fill: true,
-          outline: false,
-          show: true,
-        });
-      }
-    }
-
     return boundingBoxInfo;
   }, [
     viewer,
     featureId,
     parsedBBox,
-    showBoundingBox,
     scale.scale,
     rotation.heading,
-    position,
     getFeature,
-    addFeature,
-    updateFeature,
-    hasFeature,
     findModelPrimitive,
   ]);
 
@@ -506,15 +467,10 @@ export function CalibratePage() {
     setFileUrl(null);
     setFileName("");
     setParsedBBox(null);
+    setBoundingBoxInfo(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-    }
-
-    if (boundingBoxFeatureIdRef.current) {
-      removeFeature(boundingBoxFeatureIdRef.current);
-      boundingBoxFeatureIdRef.current = null;
-      setBoundingBoxInfo(null);
     }
 
     setFeatureId(null);
@@ -582,7 +538,8 @@ export function CalibratePage() {
         URL.revokeObjectURL(fileUrl);
       }
     };
-  }, [fileUrl, featureId, addFeature, removeFeature]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileUrl, featureId, viewer, addFeature, removeFeature]);
 
   useEffect(() => {
     if (!featureId || !fileUrl) return;
@@ -632,20 +589,19 @@ export function CalibratePage() {
     setFileUrl(null);
     setFileName("");
     setParsedBBox(null);
+    setBoundingBoxInfo(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
     setFeatureId(null);
 
-    if (boundingBoxFeatureIdRef.current) {
-      removeFeature(boundingBoxFeatureIdRef.current);
-      boundingBoxFeatureIdRef.current = null;
-      setBoundingBoxInfo(null);
-    }
-
     if (topView && viewer && !viewer.isDestroyed()) {
       setTopView(false);
+      const controller = viewer.scene.screenSpaceCameraController;
+
+      controller.enableTilt = true;
+
       const cartographic = viewer.camera.positionCartographic;
       const currentState = cameraPosition || {
         longitude: CesiumMath.toDegrees(cartographic.longitude),
@@ -665,36 +621,21 @@ export function CalibratePage() {
   };
 
   const handleToggleBoundingBox = () => {
-    setShowBoundingBox(!showBoundingBox);
+    if (!featureId || !parsedBBox) {
+      toast.error("모델이 로드되지 않았습니다.");
+      return;
+    }
 
-    if (!showBoundingBox && featureId) {
-      if (boundingBoxFeatureIdRef.current) {
-        setVisibility([boundingBoxFeatureIdRef.current], true);
-      }
+    const boundingBoxInfo = calculateBoundingBoxInfo();
+
+    if (boundingBoxInfo) {
+      setShowBoundingBox(true);
+      setBoundingBoxInfo(boundingBoxInfo);
+      toast.success("바운딩 박스 정보를 가져왔습니다.");
     } else {
-      if (boundingBoxFeatureIdRef.current) {
-        setVisibility([boundingBoxFeatureIdRef.current], false);
-      }
-      setBoundingBoxInfo(null);
+      toast.error("바운딩 박스 정보를 가져올 수 없습니다.");
     }
   };
-
-  useEffect(() => {
-    if (showBoundingBox && featureId) {
-      const boundingBoxInfo = updateBoundingBoxVisual();
-      if (boundingBoxInfo) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setBoundingBoxInfo(boundingBoxInfo);
-      }
-    }
-  }, [
-    showBoundingBox,
-    featureId,
-    scale.scale,
-    rotation.heading,
-    position,
-    updateBoundingBoxVisual,
-  ]);
 
   return (
     <div className="flex h-screen">
@@ -757,13 +698,24 @@ export function CalibratePage() {
             />
           ))}
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full cursor-pointer"
-            onClick={handleReset}
-          >
+        <div className="flex gap-4 mt-5 flex-col">
+          <div className="rounded-md border border-gray-200 p-4">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full cursor-pointer"
+              onClick={handleToggleBoundingBox}
+            >
+              Bounding Box
+            </Button>
+            <p className="text-xs text-gray-500 text-center mt-1">
+              Model의 박스 정보를 표시합니다.
+              <br />
+              Position, Scale, Rotation 변경 시 다시 클릭하세요.
+            </p>
+          </div>
+
+          <Button size="sm" className="w-full cursor-pointer" onClick={handleReset}>
             Reset
           </Button>
         </div>
@@ -775,19 +727,11 @@ export function CalibratePage() {
             <Toggle size="sm" pressed={topView} onPressedChange={handleToggleTopView}>
               Top View
             </Toggle>
-            <Toggle
-              size="sm"
-              pressed={showBoundingBox}
-              onPressedChange={handleToggleBoundingBox}
-              disabled={!featureId}
-            >
-              Bounding Box
-            </Toggle>
           </div>
         </div>
 
         {showBoundingBox && boundingBoxInfo && (
-          <div className="absolute bottom-3 right-3 z-10 bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
+          <div className="absolute bottom-3 left-3 z-10 bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
             <div className="space-y-4">
               <div>
                 <strong className="block mb-2 text-sm font-semibold">Bounding Box</strong>
@@ -816,14 +760,23 @@ export function CalibratePage() {
                   <strong className="block text-sm font-semibold">JSON</strong>
                 </div>
                 <pre className="text-xs bg-gray-900/50 rounded p-2 overflow-x-auto">
-                  {JSON.stringify(boundingBoxInfo, null, 2)}
+                  {JSON.stringify(
+                    {
+                      north: Number(boundingBoxInfo.north.toFixed(6)),
+                      south: Number(boundingBoxInfo.south.toFixed(6)),
+                      east: Number(boundingBoxInfo.east.toFixed(6)),
+                      west: Number(boundingBoxInfo.west.toFixed(6)),
+                    },
+                    null,
+                    2
+                  )}
                 </pre>
               </div>
             </div>
           </div>
         )}
 
-        <MapViewer className="w-full h-screen" ionToken={ionToken}>
+        <MapViewer className="w-full h-screen" ionToken={ionToken} requestRenderMode={false}>
           <Imagery provider="ion" assetId={imageryAssetId} />
         </MapViewer>
       </div>
