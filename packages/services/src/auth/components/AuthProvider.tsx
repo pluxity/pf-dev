@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { authApi } from "../api";
 import { useAuthStore } from "../store";
 import { AuthContext } from "./AuthContext";
@@ -9,7 +9,12 @@ export const AuthProvider = ({
   loginPath = "/login",
   onAuthError,
 }: AuthProviderProps): ReactNode => {
-  const { setUser, setLoading } = useAuthStore();
+  const setUser = useAuthStore((state) => state.setUser);
+  const onAuthErrorRef = useRef(onAuthError);
+
+  useEffect(() => {
+    onAuthErrorRef.current = onAuthError;
+  }, [onAuthError]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -18,14 +23,14 @@ export const AuthProvider = ({
         setUser(user);
       } catch (error) {
         setUser(null);
-        if (onAuthError && error instanceof Error) {
-          onAuthError(error);
+        if (onAuthErrorRef.current && error instanceof Error) {
+          onAuthErrorRef.current(error);
         }
       }
     };
 
     initAuth();
-  }, [setUser, setLoading, onAuthError]);
+  }, [setUser]);
 
   return <AuthContext.Provider value={{ loginPath }}>{children}</AuthContext.Provider>;
 };
