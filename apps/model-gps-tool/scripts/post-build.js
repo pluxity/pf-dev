@@ -8,16 +8,24 @@ const distDir = path.resolve(__dirname, "../dist");
 // dist 하위 폴더에서 cesium 폴더를 찾아서 dist/cesium으로 이동
 // 예: dist/model-gps-tool/cesium -> dist/cesium
 
-function findNestedCesium(dir) {
-  if (!fs.existsSync(dir)) return null;
+function findNestedCesium(currentDir) {
+  if (!fs.existsSync(currentDir)) return null;
 
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const entries = fs.readdirSync(currentDir, { withFileTypes: true });
 
   for (const entry of entries) {
-    if (entry.isDirectory() && entry.name !== "cesium") {
-      const nestedCesiumPath = path.join(dir, entry.name, "cesium");
-      if (fs.existsSync(nestedCesiumPath)) {
-        return { cesiumPath: nestedCesiumPath, parentDir: path.join(dir, entry.name) };
+    const entryPath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "cesium") {
+        // dist/cesium은 대상이 아니므로 중첩된 경우만 반환
+        if (path.resolve(entryPath) !== path.resolve(distDir, "cesium")) {
+          return { cesiumPath: entryPath, parentDir: currentDir };
+        }
+      } else {
+        const result = findNestedCesium(entryPath);
+        if (result) {
+          return result;
+        }
       }
     }
   }
@@ -39,12 +47,17 @@ if (nested) {
   // cesium 폴더 이동
   fs.renameSync(nested.cesiumPath, targetCesiumPath);
 
-  // 빈 폴더 정리
+  // 빈 폴더 재귀적 정리
   if (fs.existsSync(nested.parentDir)) {
-    const contents = fs.readdirSync(nested.parentDir);
-    if (contents.length === 0) {
-      fs.rmdirSync(nested.parentDir);
-      console.log(`Removed empty folder: ${path.relative(distDir, nested.parentDir)}`);
+    let currentDir = nested.parentDir;
+    while (
+      fs.existsSync(currentDir) &&
+      path.resolve(currentDir) !== path.resolve(distDir) &&
+      fs.readdirSync(currentDir).length === 0
+    ) {
+      fs.rmdirSync(currentDir);
+      console.log(`Removed empty folder: ${path.relative(distDir, currentDir)}`);
+      currentDir = path.dirname(currentDir);
     }
   }
 
