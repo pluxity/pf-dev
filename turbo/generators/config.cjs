@@ -53,6 +53,24 @@ module.exports = function generator(plop) {
           return true;
         },
       },
+      {
+        type: "confirm",
+        name: "includeCctv",
+        message: "Include @pf-dev/cctv?",
+        default: false,
+      },
+      {
+        type: "confirm",
+        name: "includeMap",
+        message: "Include @pf-dev/map? (includes Cesium)",
+        default: false,
+      },
+      {
+        type: "confirm",
+        name: "includeThree",
+        message: "Include @pf-dev/three?",
+        default: false,
+      },
     ],
     actions: [
       // Package files
@@ -178,6 +196,18 @@ module.exports = function generator(plop) {
         type: "copyFile",
         src: "templates/app/public/favicon.ico",
         destPath: "public/favicon.ico",
+      },
+      // Cesium post-build script (only when includeMap is true)
+      {
+        type: "add",
+        path: "{{ turbo.paths.root }}/apps/{{ name }}/scripts/post-build.js",
+        templateFile: "templates/app/scripts/post-build.js.hbs",
+        skip: function (answers) {
+          if (!answers.includeMap) {
+            return "Skipping post-build.js (Map not included)";
+          }
+          return false;
+        },
       },
       // Format generated files with prettier
       function (answers) {

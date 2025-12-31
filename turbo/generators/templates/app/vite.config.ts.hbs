@@ -1,6 +1,9 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+{{#if includeMap}}
+import cesium from "vite-plugin-cesium";
+{{/if}}
 import { resolve } from "path";
 
 export default defineConfig(({ mode }) => {
@@ -12,8 +15,12 @@ export default defineConfig(({ mode }) => {
   const proxyTarget = `${devServer}${projectPath}`;
   const cookiePath = `${projectPath}/api`;
 
+  // Base path 설정 (staging 환경에서 contextPath 적용)
+  const contextPath = env.VITE_CONTEXT_PATH || "";
+
   return {
-    plugins: [react(), tailwindcss()],
+    base: contextPath || "/",
+    plugins: [react(), tailwindcss(){{#if includeMap}}, cesium(){{/if}}],
     resolve: {
       alias: {
         "@": resolve(__dirname, "./src"),
