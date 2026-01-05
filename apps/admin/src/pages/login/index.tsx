@@ -1,0 +1,36 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoginCard } from "@pf-dev/ui/organisms";
+import { login, useAuthStore, getMe } from "@pf-dev/services";
+
+export function LoginPage() {
+  const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (data: { username: string; password: string }) => {
+    setLoading(true);
+    try {
+      await login({ username: data.username, password: data.password });
+      const user = await getMe();
+      setUser(user);
+      navigate("/");
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <LoginCard
+        title="Admin Login"
+        subtitle="관리자 페이지에 로그인하세요"
+        onLoginSubmit={handleLogin}
+        loading={loading}
+      />
+    </div>
+  );
+}
