@@ -1,8 +1,9 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { ErrorPage } from "@pf-dev/ui/templates";
+import { ProtectedRouter } from "@pf-dev/services";
 
 import { RootLayout } from "@/layouts/RootLayout";
-import { HomePage } from "@/pages";
+import { HomePage, LoginPage } from "@/pages";
 
 function NotFoundPage() {
   const navigate = useNavigate();
@@ -14,7 +15,17 @@ function NotFoundPage() {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<RootLayout />}>
+      {/* 로그인 페이지 (인증 불필요) */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* 인증 필요한 라우트 */}
+      <Route
+        element={
+          <ProtectedRouter>
+            <RootLayout />
+          </ProtectedRouter>
+        }
+      >
         <Route index element={<HomePage />} />
         {/* Add more routes here */}
       </Route>

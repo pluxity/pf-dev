@@ -22,7 +22,8 @@
     "zod": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@pf-dev/api": "workspace:*",
-    "@pf-dev/ui": "workspace:*"
+    "@pf-dev/ui": "workspace:*",
+    "@pf-dev/services": "workspace:*"
   },
   "devDependencies": {
     "@pf-dev/eslint-config": "workspace:*",
