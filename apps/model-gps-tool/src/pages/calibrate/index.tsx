@@ -749,7 +749,7 @@ export function CalibratePage() {
         <div className="absolute bottom-3 left-3 z-10">
           <div className="flex flex-col gap-2">
             {clickedCoord && (
-              <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
+              <div className="relative bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
                 <div className="space-y-4">
                   <div>
                     <strong className="block mb-2 text-sm font-semibold">Clicked Coordinate</strong>
@@ -774,7 +774,7 @@ export function CalibratePage() {
               </div>
             )}
             {showBoundingBox && boundingBoxInfo && (
-              <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
+              <div className="relative bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-white min-w-[280px]">
                 <div className="space-y-4">
                   <div>
                     <strong className="block mb-2 text-sm font-semibold">Bounding Box</strong>
