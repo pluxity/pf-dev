@@ -577,7 +577,7 @@ export function CalibratePage() {
       return {
         longitude: position.longitude,
         latitude: position.latitude,
-        height: position.height,
+        height: position.height ?? 0,
       };
     }
     if (sectionId === "rotation") {

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { Position } from "../pages/calibrate/types";
 import {
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
@@ -7,15 +8,10 @@ import {
   type Viewer,
 } from "cesium";
 
-interface Coordinate {
-  longitude: number;
-  latitude: number;
-}
-
 interface UseCoordinatePickerProps {
   viewer: Viewer | null;
   enabled: boolean;
-  setClickedCoord: (coord: Coordinate | null) => void;
+  setClickedCoord: (coord: Position | null) => void;
 }
 
 export function useCoordinatePicker({
