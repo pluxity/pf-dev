@@ -2,7 +2,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { ErrorPage } from "@pf-dev/ui/templates";
 import { ProtectedRouter } from "@pf-dev/services";
 
-import { RootLayout } from "@/layouts/RootLayout";
+import { AdminLayout } from "@/layouts";
 import { HomePage, LoginPage } from "@/pages";
 
 function NotFoundPage() {
@@ -22,7 +22,7 @@ export function AppRoutes() {
       <Route
         element={
           <ProtectedRouter>
-            <RootLayout />
+            <AdminLayout />
           </ProtectedRouter>
         }
       >
