@@ -7,7 +7,11 @@
     "dev": "vite --port {{ port }}",
     "dev:staging": "vite --mode staging --port {{ port }}",
     "build": "tsc && vite build",
+    {{#if includeMap}}
+    "build:staging": "tsc && vite build --mode staging && node scripts/post-build.js",
+    {{else}}
     "build:staging": "tsc && vite build --mode staging",
+    {{/if}}
     "build:production": "tsc && vite build --mode production",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -22,7 +26,11 @@
     "zod": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@pf-dev/api": "workspace:*",
-    "@pf-dev/ui": "workspace:*"
+    "@pf-dev/ui": "workspace:*"{{#if includeCctv}},
+    "@pf-dev/cctv": "workspace:*"{{/if}}{{#if includeMap}},
+    "@pf-dev/map": "workspace:*",
+    "cesium": "^1.121.0"{{/if}}{{#if includeThree}},
+    "@pf-dev/three": "workspace:*"{{/if}}
   },
   "devDependencies": {
     "@pf-dev/eslint-config": "workspace:*",
@@ -35,6 +43,7 @@
     "tailwindcss": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "eslint": "catalog:",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1"{{#if includeMap}},
+    "vite-plugin-cesium": "^1.2.23"{{/if}}
   }
 }
