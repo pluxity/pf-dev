@@ -7,7 +7,7 @@ export interface TableColumn<T> {
 export interface TableWidgetProps<T extends Record<string, unknown>> {
   title: string;
   columns: TableColumn<T>[];
-  data: T[];
+  data: (T & { id?: string | number })[];
   emptyMessage?: string;
 }
 
@@ -49,7 +49,7 @@ export function TableWidget<T extends Record<string, unknown>>({
               </tr>
             ) : (
               data.map((row, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
+                <tr key={row.id ?? idx} className="hover:bg-gray-50">
                   {columns.map((col) => (
                     <td
                       key={String(col.key)}

@@ -1,27 +1,63 @@
 import { useState, useCallback, useMemo } from "react";
 import GridLayout from "react-grid-layout";
+import { z } from "zod";
 import { Button, Edit, Check, X } from "@pf-dev/ui/atoms";
 
 import "react-grid-layout/css/styles.css";
 
-export interface LayoutItem {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  minW?: number;
-  minH?: number;
-  maxW?: number;
-  maxH?: number;
-  static?: boolean;
+import type { StatCardProps } from "./widgets/StatCard";
+import type { ChartWidgetProps } from "./widgets/ChartWidget";
+import type { TableWidgetProps } from "./widgets/TableWidget";
+import type { EmptyWidgetProps } from "./widgets/EmptyWidget";
+
+// Layout 스키마 정의
+const LayoutItemSchema = z.object({
+  i: z.string(),
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+  minW: z.number().optional(),
+  minH: z.number().optional(),
+  maxW: z.number().optional(),
+  maxH: z.number().optional(),
+  static: z.boolean().optional(),
+});
+
+const LayoutSchema = z.array(LayoutItemSchema);
+
+export type LayoutItem = z.infer<typeof LayoutItemSchema>;
+
+// Discriminated Union 타입으로 WidgetConfig 정의
+interface StatWidgetConfig {
+  id: string;
+  type: "stat";
+  props: StatCardProps;
 }
 
-export interface WidgetConfig {
+interface ChartWidgetConfig {
   id: string;
-  type: "stat" | "chart" | "table" | "empty";
-  props: Record<string, unknown>;
+  type: "chart";
+  props: ChartWidgetProps;
 }
+
+interface TableWidgetConfig {
+  id: string;
+  type: "table";
+  props: TableWidgetProps<Record<string, unknown>>;
+}
+
+interface EmptyWidgetConfig {
+  id: string;
+  type: "empty";
+  props: EmptyWidgetProps;
+}
+
+export type WidgetConfig =
+  | StatWidgetConfig
+  | ChartWidgetConfig
+  | TableWidgetConfig
+  | EmptyWidgetConfig;
 
 export interface DashboardGridProps {
   widgets: WidgetConfig[];
@@ -35,6 +71,8 @@ export interface DashboardGridProps {
 
 const STORAGE_KEY = "dashboard-layout";
 
+// react-grid-layout@2.x와 @types/react-grid-layout@1.x 간 타입 불일치로 인해
+// any 캐스팅 사용. 라이브러리 타입이 업데이트되면 제거 예정.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RGL = GridLayout as any;
 
@@ -52,9 +90,13 @@ export function DashboardGrid({
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const result = LayoutSchema.safeParse(parsed);
+        if (result.success) {
+          return result.data;
+        }
       } catch {
-        return initialLayout;
+        // JSON.parse 실패 시 initialLayout 반환
       }
     }
     return initialLayout;

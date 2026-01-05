@@ -6,11 +6,8 @@ import {
   WidgetConfig,
   LayoutItem,
   StatCard,
-  StatCardProps,
   ChartWidget,
-  ChartWidgetProps,
   TableWidget,
-  TableWidgetProps,
 } from "./components";
 
 // 샘플 위젯 설정
@@ -94,11 +91,11 @@ const SAMPLE_WIDGETS: WidgetConfig[] = [
         { key: "time", header: "시간" },
       ],
       data: [
-        { user: "김철수", action: "로그인", time: "방금 전" },
-        { user: "이영희", action: "상품 조회", time: "1분 전" },
-        { user: "박민수", action: "주문 완료", time: "3분 전" },
-        { user: "최지은", action: "회원가입", time: "5분 전" },
-        { user: "정대현", action: "결제 완료", time: "8분 전" },
+        { id: 1, user: "김철수", action: "로그인", time: "방금 전" },
+        { id: 2, user: "이영희", action: "상품 조회", time: "1분 전" },
+        { id: 3, user: "박민수", action: "주문 완료", time: "3분 전" },
+        { id: 4, user: "최지은", action: "회원가입", time: "5분 전" },
+        { id: 5, user: "정대현", action: "결제 완료", time: "8분 전" },
       ],
     },
   },
@@ -135,15 +132,13 @@ export function DashboardPage() {
   const renderWidget = useCallback((widget: WidgetConfig) => {
     switch (widget.type) {
       case "stat":
-        return <StatCard {...(widget.props as unknown as StatCardProps)} />;
+        return <StatCard {...widget.props} />;
       case "chart":
-        return <ChartWidget {...(widget.props as unknown as ChartWidgetProps)} />;
+        return <ChartWidget {...widget.props} />;
       case "table":
-        return (
-          <TableWidget
-            {...(widget.props as unknown as TableWidgetProps<Record<string, unknown>>)}
-          />
-        );
+        return <TableWidget {...widget.props} />;
+      case "empty":
+        return null;
       default:
         return null;
     }

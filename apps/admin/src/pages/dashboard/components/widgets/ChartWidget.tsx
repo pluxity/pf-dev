@@ -1,6 +1,7 @@
 export interface ChartWidgetProps {
   title: string;
   type: "line" | "bar" | "pie";
+  // TODO: 실제 차트 라이브러리 연동 시 data prop 사용 예정
   data?: unknown;
 }
 
