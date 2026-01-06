@@ -1,5 +1,5 @@
 ---
-"@pf-dev/ui": minor
+"@pf-dev/ui": patch
 ---
 
 Sidebar 레이아웃 및 디자인 개선
