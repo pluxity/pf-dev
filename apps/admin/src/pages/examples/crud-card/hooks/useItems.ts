@@ -30,7 +30,7 @@ export interface UseItemsReturn {
 
   // 액션
   setSearchQuery: (query: string) => void;
-  setFilterStatus: (status: FilterStatus) => void;
+  changeFilterStatus: (status: FilterStatus) => void;
   setCurrentPage: (page: number) => void;
 
   // CRUD 핸들러
@@ -184,7 +184,7 @@ export function useItems(): UseItemsReturn {
 
     // 액션
     setSearchQuery,
-    setFilterStatus: (status: FilterStatus) => {
+    changeFilterStatus: (status: FilterStatus) => {
       setFilterStatus(status);
       setCurrentPage(1);
     },

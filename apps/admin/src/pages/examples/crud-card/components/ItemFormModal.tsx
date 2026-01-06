@@ -71,12 +71,8 @@ export function ItemFormModal({
         status: item.status,
       });
     } else {
-      reset({
-        title: "",
-        description: "",
-        thumbnail: "",
-        status: "draft",
-      });
+      // useForm에 정의된 defaultValues로 폼을 리셋
+      reset();
     }
   }, [item, reset]);
 

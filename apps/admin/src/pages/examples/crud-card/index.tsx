@@ -44,7 +44,7 @@ export function CrudCardPage() {
 
     // 액션
     setSearchQuery,
-    setFilterStatus,
+    changeFilterStatus,
     setCurrentPage,
 
     // CRUD 핸들러
@@ -90,7 +90,7 @@ export function CrudCardPage() {
               key={status}
               variant={filterStatus === status ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilterStatus(status)}
+              onClick={() => changeFilterStatus(status)}
             >
               {STATUS_LABELS[status]}
             </Button>
