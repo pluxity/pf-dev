@@ -1,120 +1,64 @@
-import { useState, useMemo, useCallback } from "react";
+/**
+ * CRUD 카드형 페이지 예제
+ *
+ * 이 페이지를 복사하여 새 CRUD 페이지를 만들 수 있습니다.
+ *
+ * 수정이 필요한 파일:
+ * 1. types.ts - 데이터 타입 정의
+ * 2. services/itemService.ts - API 호출 로직
+ * 3. components/ - 필요시 UI 수정
+ */
+
 import { Button } from "@pf-dev/ui/atoms";
 import { Plus } from "@pf-dev/ui/atoms";
 import { SearchBar, Pagination } from "@pf-dev/ui/molecules";
 import { CardList } from "@pf-dev/ui/organisms";
 import { ItemCard, ItemFormModal, DeleteConfirmDialog } from "./components";
-import type { Item, ItemFormData, FilterStatus } from "./types";
+import { useItems } from "./hooks";
+import type { FilterStatus } from "./types";
 
-// 샘플 데이터
-const STATUSES: Item["status"][] = ["active", "inactive", "draft"];
-const SAMPLE_ITEMS: Item[] = Array.from({ length: 23 }, (_, i) => ({
-  id: `item-${i + 1}`,
-  title: `샘플 항목 ${i + 1}`,
-  description: `이것은 샘플 항목 ${i + 1}의 설명입니다. 카드형 CRUD 페이지 템플릿의 예시 데이터입니다.`,
-  thumbnail: i % 3 === 0 ? `https://picsum.photos/seed/${i + 1}/400/300` : undefined,
-  status: STATUSES[i % 3]!,
-  createdAt: new Date(Date.now() - i * 86400000).toISOString(),
-  updatedAt: new Date(Date.now() - i * 43200000).toISOString(),
-}));
-
-const ITEMS_PER_PAGE = 9;
+const STATUS_LABELS: Record<FilterStatus, string> = {
+  all: "전체",
+  active: "활성",
+  inactive: "비활성",
+  draft: "초안",
+};
 
 export function CrudCardPage() {
-  const [items, setItems] = useState<Item[]>(SAMPLE_ITEMS);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    // 데이터
+    filteredItems,
+    paginatedItems,
+    totalPages,
+    isLoading,
 
-  // 모달 상태
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+    // 필터/페이지네이션 상태
+    searchQuery,
+    filterStatus,
+    currentPage,
 
-  // 필터링된 아이템
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchesSearch =
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-  }, [items, searchQuery, filterStatus]);
+    // 모달 상태
+    formModalOpen,
+    deleteDialogOpen,
+    selectedItem,
 
-  // 페이지네이션
-  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredItems.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredItems, currentPage]);
+    // 액션
+    setSearchQuery,
+    setFilterStatus,
+    setCurrentPage,
 
-  // 핸들러
-  const handleCreate = useCallback(() => {
-    setSelectedItem(null);
-    setFormModalOpen(true);
-  }, []);
+    // CRUD 핸들러
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleFormSubmit,
+    handleDeleteConfirm,
+    handleSearch,
 
-  const handleEdit = useCallback((item: Item) => {
-    setSelectedItem(item);
-    setFormModalOpen(true);
-  }, []);
-
-  const handleDelete = useCallback((item: Item) => {
-    setSelectedItem(item);
-    setDeleteDialogOpen(true);
-  }, []);
-
-  const handleFormSubmit = useCallback(
-    async (data: ItemFormData) => {
-      setIsLoading(true);
-      // 실제 API 호출 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      if (selectedItem) {
-        // 수정
-        setItems((prev) =>
-          prev.map((item) =>
-            item.id === selectedItem.id
-              ? { ...item, ...data, updatedAt: new Date().toISOString() }
-              : item
-          )
-        );
-      } else {
-        // 생성
-        const newItem: Item = {
-          id: `item-${Date.now()}`,
-          ...data,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setItems((prev) => [newItem, ...prev]);
-      }
-
-      setIsLoading(false);
-      setFormModalOpen(false);
-    },
-    [selectedItem]
-  );
-
-  const handleDeleteConfirm = useCallback(async () => {
-    if (!selectedItem) return;
-
-    setIsLoading(true);
-    // 실제 API 호출 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setItems((prev) => prev.filter((item) => item.id !== selectedItem.id));
-    setIsLoading(false);
-    setDeleteDialogOpen(false);
-    setSelectedItem(null);
-  }, [selectedItem]);
-
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  }, []);
+    // 모달 제어
+    setFormModalOpen,
+    setDeleteDialogOpen,
+  } = useItems();
 
   return (
     <div className="flex h-full flex-col">
@@ -146,15 +90,9 @@ export function CrudCardPage() {
               key={status}
               variant={filterStatus === status ? "default" : "outline"}
               size="sm"
-              onClick={() => {
-                setFilterStatus(status);
-                setCurrentPage(1);
-              }}
+              onClick={() => setFilterStatus(status)}
             >
-              {status === "all" && "전체"}
-              {status === "active" && "활성"}
-              {status === "inactive" && "비활성"}
-              {status === "draft" && "초안"}
+              {STATUS_LABELS[status]}
             </Button>
           ))}
         </div>
