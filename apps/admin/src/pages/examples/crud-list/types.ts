@@ -1,5 +1,18 @@
-export interface UserBase {
-  id: number;
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  role: string;
+  status: "active" | "inactive" | "pending";
+  joinDate: string;
+  createdAt: string;
+  updatedAt: string;
+  // DataTable 호환을 위한 index signature
+  [key: string]: string;
+}
+
+export interface UserFormData {
   name: string;
   email: string;
   department: string;
@@ -8,12 +21,7 @@ export interface UserBase {
   joinDate: string;
 }
 
-// DataTable에서 사용하기 위해 index signature 추가
-export interface User extends UserBase {
-  [key: string]: unknown;
-}
-
-export type UserFormData = Omit<UserBase, "id">;
+export type FilterStatus = "all" | "active" | "inactive" | "pending";
 
 export const DEPARTMENTS = ["Engineering", "Design", "Marketing", "Sales", "HR"] as const;
 

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@pf-dev/ui";
-import { UserFormData, UserForm } from "./components";
+import { Button, ChevronLeft } from "@pf-dev/ui/atoms";
+import { UserForm } from "./components";
+import { createUser } from "./services";
+import type { UserFormData } from "./types";
 
 export function CrudListCreatePage() {
   const navigate = useNavigate();
@@ -9,11 +11,14 @@ export function CrudListCreatePage() {
 
   const handleSubmit = async (data: UserFormData) => {
     setIsLoading(true);
-    // API 호출 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("Created user:", data);
-    setIsLoading(false);
-    navigate("/examples/crud-list");
+    try {
+      await createUser(data);
+      navigate("/examples/crud-list");
+    } catch (error) {
+      console.error("Failed to create user:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -24,11 +29,12 @@ export function CrudListCreatePage() {
     <div className="space-y-6">
       {/* 페이지 헤더 */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={handleCancel}>
-          ← 목록으로
+        <Button variant="ghost" size="sm" onClick={handleCancel}>
+          <ChevronLeft size="sm" />
+          <span className="ml-1">목록으로</span>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">사용자 추가</h1>
+          <h1 className="text-xl font-semibold text-gray-900">사용자 추가</h1>
           <p className="mt-1 text-sm text-gray-500">새로운 사용자 정보를 입력하세요.</p>
         </div>
       </div>

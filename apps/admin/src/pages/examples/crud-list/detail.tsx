@@ -1,39 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Badge } from "@pf-dev/ui";
+import { Button, Badge, ChevronLeft } from "@pf-dev/ui/atoms";
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody } from "@pf-dev/ui/organisms";
-import { User, UserFormData, UserForm, DeleteConfirmDialog } from "./components";
-
-// 더미 데이터 (실제로는 API에서 가져옴)
-const mockUsers: User[] = [
-  {
-    id: 1,
-    name: "김철수",
-    email: "kim@example.com",
-    department: "Engineering",
-    role: "Developer",
-    status: "active",
-    joinDate: "2024-01-15",
-  },
-  {
-    id: 2,
-    name: "이영희",
-    email: "lee@example.com",
-    department: "Design",
-    role: "Designer",
-    status: "active",
-    joinDate: "2024-02-20",
-  },
-  {
-    id: 3,
-    name: "박지성",
-    email: "park@example.com",
-    department: "Marketing",
-    role: "Manager",
-    status: "inactive",
-    joinDate: "2023-11-10",
-  },
-];
+import { UserForm, DeleteConfirmDialog } from "./components";
+import { getUser, updateUser, deleteUser } from "./services";
+import type { User, UserFormData } from "./types";
 
 const statusColors = {
   active: "success" as const,
@@ -57,13 +28,17 @@ export function CrudListDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // API 호출 시뮬레이션
     const fetchUser = async () => {
+      if (!id) return;
       setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const foundUser = mockUsers.find((u) => u.id === Number(id));
-      setUser(foundUser ?? null);
-      setIsLoading(false);
+      try {
+        const data = await getUser(id);
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchUser();
   }, [id]);
@@ -71,18 +46,29 @@ export function CrudListDetailPage() {
   const handleEditSubmit = async (data: UserFormData) => {
     if (!user) return;
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setUser({ ...user, ...data });
-    setIsSaving(false);
-    setEditModalOpen(false);
+    try {
+      const updated = await updateUser(user.id, data);
+      setUser(updated);
+      setEditModalOpen(false);
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
+    if (!user) return;
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-    setDeleteDialogOpen(false);
-    navigate("/examples/crud-list");
+    try {
+      await deleteUser(user.id);
+      navigate("/examples/crud-list");
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    } finally {
+      setIsSaving(false);
+      setDeleteDialogOpen(false);
+    }
   };
 
   if (isLoading) {
@@ -117,11 +103,12 @@ export function CrudListDetailPage() {
       {/* 페이지 헤더 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/examples/crud-list")}>
-            ← 목록으로
+          <Button variant="ghost" size="sm" onClick={() => navigate("/examples/crud-list")}>
+            <ChevronLeft size="sm" />
+            <span className="ml-1">목록으로</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">사용자 상세</h1>
+            <h1 className="text-xl font-semibold text-gray-900">사용자 상세</h1>
             <p className="mt-1 text-sm text-gray-500">사용자 정보를 확인하고 관리할 수 있습니다.</p>
           </div>
         </div>
@@ -191,6 +178,7 @@ export function CrudListDetailPage() {
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        user={user}
         onConfirm={handleDeleteConfirm}
         isLoading={isSaving}
       />

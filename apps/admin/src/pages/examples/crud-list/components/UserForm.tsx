@@ -7,11 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@pf-dev/ui/molecules";
-import type { UserBase, UserFormData } from "./types";
-import { DEPARTMENTS, ROLES, STATUS_OPTIONS } from "./types";
+import type { User, UserFormData } from "../types";
+import { DEPARTMENTS, ROLES, STATUS_OPTIONS } from "../types";
 
 interface UserFormProps {
-  initialData?: UserBase;
+  initialData?: User;
   onSubmit: (data: UserFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -105,7 +105,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
           <Label htmlFor="status">상태</Label>
           <Select
             value={formData.status}
-            onValueChange={(value) => handleChange("status", value as UserBase["status"])}
+            onValueChange={(value) => handleChange("status", value as User["status"])}
           >
             <SelectTrigger>
               <SelectValue placeholder="상태 선택" />
@@ -132,7 +132,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className="flex justify-end gap-3 border-t pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
           취소
         </Button>

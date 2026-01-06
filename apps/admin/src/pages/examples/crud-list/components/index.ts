@@ -1,4 +1,3 @@
-export * from "./types";
-export * from "./UserColumns";
-export * from "./UserForm";
-export * from "./DeleteConfirmDialog";
+export { getUserColumns } from "./UserColumns";
+export { UserForm } from "./UserForm";
+export { DeleteConfirmDialog } from "./DeleteConfirmDialog";

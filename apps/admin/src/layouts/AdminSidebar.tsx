@@ -24,18 +24,13 @@ const menuSections: MenuSection[] = [
     items: [
       { label: "홈", path: "/", icon: <Home size="md" /> },
       { label: "대시보드", path: "/dashboard", icon: <Dashboard size="md" /> },
-    ],
-  },
-  {
-    label: "Examples",
-    items: [{ label: "CRUD 리스트", path: "/examples/crud-list", icon: <FileText size="md" /> }],
-  },
-  {
-    label: "관리",
-    items: [
       { label: "사용자 관리", path: "/users", icon: <Users size="md" /> },
       { label: "설정", path: "/settings", icon: <Settings size="md" /> },
     ],
+  },
+  {
+    label: "예제",
+    items: [{ label: "CRUD 리스트형", path: "/examples/crud-list", icon: <FileText size="md" /> }],
   },
 ];
 
