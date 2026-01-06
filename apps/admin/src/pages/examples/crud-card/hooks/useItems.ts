@@ -90,7 +90,15 @@ export function useItems(): UseItemsReturn {
   }, [items, searchQuery, filterStatus]);
 
   // 페이지네이션
-  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
+
+  // 현재 페이지가 유효 범위를 벗어나면 마지막 유효 페이지로 자동 조정
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredItems.slice(start, start + ITEMS_PER_PAGE);
