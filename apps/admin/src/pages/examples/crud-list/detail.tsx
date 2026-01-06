@@ -5,18 +5,7 @@ import { Modal, ModalContent, ModalHeader, ModalTitle, ModalBody } from "@pf-dev
 import { UserForm, DeleteConfirmDialog } from "./components";
 import { getUser, updateUser, deleteUser } from "./services";
 import type { User, UserFormData } from "./types";
-
-const statusColors = {
-  active: "success" as const,
-  inactive: "default" as const,
-  pending: "warning" as const,
-};
-
-const statusLabels = {
-  active: "활성",
-  inactive: "비활성",
-  pending: "대기중",
-};
+import { STATUS_COLORS, STATUS_LABELS } from "./types";
 
 export function CrudListDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -147,7 +136,7 @@ export function CrudListDetailPage() {
           <div>
             <dt className="text-sm font-medium text-gray-500">상태</dt>
             <dd className="mt-1">
-              <Badge variant={statusColors[user.status]}>{statusLabels[user.status]}</Badge>
+              <Badge variant={STATUS_COLORS[user.status]}>{STATUS_LABELS[user.status]}</Badge>
             </dd>
           </div>
           <div>

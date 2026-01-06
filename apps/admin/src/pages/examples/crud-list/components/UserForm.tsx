@@ -18,7 +18,7 @@ interface UserFormProps {
 }
 
 function getDefaultJoinDate(): string {
-  return new Date().toISOString().split("T")[0] ?? "";
+  return new Date().toISOString().split("T")[0]!;
 }
 
 export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFormProps) {

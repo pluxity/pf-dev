@@ -58,7 +58,7 @@ export function AdminSidebar({ collapsed, onCollapsedChange, onItemClick }: Admi
 
       <Sidebar.Content>
         {menuSections.map((section, index) => (
-          <Sidebar.Section key={index} label={section.label}>
+          <Sidebar.Section key={section.label ?? index} label={section.label}>
             {section.items.map((item) => (
               <Sidebar.Item
                 key={item.path}

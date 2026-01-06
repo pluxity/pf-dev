@@ -37,7 +37,19 @@ export const ROLES = [
 ] as const;
 
 export const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "pending", label: "Pending" },
+  { value: "active", label: "활성" },
+  { value: "inactive", label: "비활성" },
+  { value: "pending", label: "대기중" },
 ] as const;
+
+export const STATUS_COLORS = {
+  active: "success" as const,
+  inactive: "default" as const,
+  pending: "warning" as const,
+};
+
+export const STATUS_LABELS = {
+  active: "활성",
+  inactive: "비활성",
+  pending: "대기중",
+};

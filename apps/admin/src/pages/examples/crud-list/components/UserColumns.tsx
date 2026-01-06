@@ -1,12 +1,7 @@
 import { Badge, Button } from "@pf-dev/ui";
 import { type DataTableColumn } from "@pf-dev/ui/organisms";
 import type { User } from "../types";
-
-const statusColors = {
-  active: "success" as const,
-  inactive: "default" as const,
-  pending: "warning" as const,
-};
+import { STATUS_COLORS, STATUS_LABELS } from "../types";
 
 interface GetColumnsOptions {
   onEdit?: (user: User) => void;
@@ -45,9 +40,7 @@ export function getUserColumns({
       header: "상태",
       sortable: true,
       render: (row) => (
-        <Badge variant={statusColors[row.status]}>
-          {row.status === "active" ? "활성" : row.status === "inactive" ? "비활성" : "대기중"}
-        </Badge>
+        <Badge variant={STATUS_COLORS[row.status]}>{STATUS_LABELS[row.status]}</Badge>
       ),
     },
     {
