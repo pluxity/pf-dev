@@ -203,7 +203,7 @@ export function CalibratePage() {
 
   useCoordinatePicker({
     viewer,
-    enabled: !dragMode,
+    enabled: !dragMode && !!fileUrl,
     setClickedCoord,
   });
 
