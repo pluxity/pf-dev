@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Input, Button, useToast, Toaster, Slider, Toggle, X } from "@pf-dev/ui";
 import { MapViewer, Imagery, useFeatureStore, useMapStore, useCameraStore } from "@pf-dev/map";
 import {
@@ -406,7 +407,7 @@ export function CalibratePage() {
       const url = URL.createObjectURL(file);
       setFileUrl(url);
       setFileName(file.name);
-      setFeatureId(crypto.randomUUID());
+      setFeatureId(uuidv4());
 
       const parsedBBox = await parseGLTFBoundingBox(file);
       if (parsedBBox) {
